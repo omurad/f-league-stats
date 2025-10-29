@@ -4,5 +4,5 @@ static_sites:
   github:
     branch: main
     deploy_on_push: true
-    repo: omurad/f-league-stats
+    repo: digitalocean/sample-html
   name: sample-html
