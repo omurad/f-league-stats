@@ -317,6 +317,67 @@
             color: #4299e1;
         }
 
+        .top-team-display {
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .top-team-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 30px 40px;
+            min-width: 320px;
+            text-align: center;
+            border: 3px solid #ffd700;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .top-team-card:hover {
+            transform: scale(1.05);
+        }
+
+        .top-team-trophy {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .top-team-logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            border: 4px solid #ffd700;
+            background: white;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-team-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .top-team-points {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .top-team-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
         footer {
             text-align: center;
             margin-top: 40px;
@@ -345,12 +406,54 @@
         <header>
             <h1>The F-League</h1>
             <p class="subtitle">Fantasy Basketball Stats Dashboard - 2025-2026 Season</p>
-            <p class="meta">Last Updated: October 29, 2025 at 12:07 AM -0700</p>
+            <p class="meta">Last Updated: October 29, 2025 at 12:33 AM -0700</p>
         </header>
 
         <div class="charts-grid">
             <div class="chart-container full-width">
+                <h2>👑 Top Team of the Week</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Highest scoring team each week based on total fantasy points.
+                </p>
+                <div class="week-selector" id="topTeamWeekSelector"></div>
+                <div class="top-team-display" id="topTeamDisplay"></div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>🏆 Top 3 Players of the Week</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Best individual player performances each week across all teams.
+                </p>
+                <div class="week-selector" id="weekSelector"></div>
+                <div class="top-players-display" id="topPlayersDisplay"></div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>🎯 All-Play Standings</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Shows how each team would rank if they played against every other team each week,
+                    removing the impact of schedule luck.
+                </p>
+                <div class="chart-wrapper">
+                    <canvas id="allPlayStandingsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>📈 All-Play Win Percentage Progression</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Track each team's all-play win percentage over time, showing performance trends.
+                </p>
+                <div class="chart-wrapper">
+                    <canvas id="allPlayProgressionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container full-width">
                 <h2>📈 Weekly Total Points</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Track each team's total points scored per week throughout the season.
+                </p>
                 <div class="chart-wrapper">
                     <canvas id="weeklyPointsChart"></canvas>
                 </div>
@@ -358,6 +461,9 @@
 
             <div class="chart-container full-width">
                 <h2>📊 Cumulative Total Points</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Running total of all points scored by each team over time.
+                </p>
                 <div class="chart-wrapper">
                     <canvas id="cumulativePointsChart"></canvas>
                 </div>
@@ -365,6 +471,9 @@
 
             <div class="chart-container">
                 <h2>📊 Standings Progression</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Track how team rankings change week by week based on actual head-to-head results.
+                </p>
                 <div class="chart-wrapper">
                     <canvas id="standingsChart"></canvas>
                 </div>
@@ -372,25 +481,25 @@
 
             <div class="chart-container">
                 <h2>📉 Win Margin Distribution</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Distribution of point differences in matchups showing competitiveness of games.
+                </p>
                 <div class="chart-wrapper">
                     <canvas id="marginChart"></canvas>
                 </div>
             </div>
 
             <div class="chart-container full-width">
-                <h2>🏆 Top 3 Players of the Week</h2>
-                <div class="week-selector" id="weekSelector"></div>
-                <div class="top-players-display" id="topPlayersDisplay"></div>
-            </div>
-
-            <div class="chart-container full-width">
                 <h2>⭐ Top Player Contributions by Team (Week 2)</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Highest scoring players on each team for the most recent week.
+                </p>
                 <div class="player-contributions-grid" id="playerContributionsGrid"></div>
             </div>
         </div>
 
         <footer>
-            <p>Generated with ESPN API | Data accurate as of October 29, 2025 at 12:07 AM -0700</p>
+            <p>Generated with ESPN API | Data accurate as of October 29, 2025 at 12:33 AM -0700</p>
         </footer>
     </div>
 
@@ -400,10 +509,12 @@
         const cumulativePointsData = {"weeks": [1, 2], "teams": {"NBA WhiteBoy": [1426.0, 1977.0], "Its Not Delivery, Its Dejounte": [1370.0, 2001.0], "Duren Duren": [1005.0, 1305.0], "APPLYING PASCALS": [1041.0, 1376.0], "ALDAMA-LAMA-DINGDONGS": [1146.0, 1491.0], "Ay-ton of Drugs ": [1116.0, 1575.0], "Anthony Davis": [1024.0, 1524.0], "bridges bridges and bridges": [1341.0, 1891.0], "Honolulu Kawhi'i": [1011.0, 1320.0], "Shai-K47": [1108.0, 1731.0]}};
         const standingsData = {"weeks": [1, 2], "teams": {"NBA WhiteBoy": [1, 1], "Its Not Delivery, Its Dejounte": [2, 2], "Duren Duren": [6, 6], "APPLYING PASCALS": [3, 3], "ALDAMA-LAMA-DINGDONGS": [7, 7], "Ay-ton of Drugs ": [8, 8], "Anthony Davis": [9, 9], "bridges bridges and bridges": [4, 4], "Honolulu Kawhi'i": [10, 10], "Shai-K47": [5, 5]}};
         const playerContributions = {"weeks": [1, 2], "contributions": {"1": {"ALDAMA-LAMA-DINGDONGS": [{"name": "Evan Mobley", "points": 132.0, "playerId": 4432158}, {"name": "Norman Powell", "points": 131.0, "playerId": 2595516}, {"name": "Zach LaVine", "points": 112.0, "playerId": 3064440}, {"name": "Brandon Ingram", "points": 107.0, "playerId": 3913176}, {"name": "Cade Cunningham", "points": 107.0, "playerId": 4432166}], "bridges bridges and bridges": [{"name": "Stephen Curry", "points": 188.0, "playerId": 3975}, {"name": "Mikal Bridges", "points": 123.0, "playerId": 3147657}, {"name": "Ausar Thompson", "points": 118.0, "playerId": 4684742}, {"name": "Miles Bridges", "points": 110.0, "playerId": 4066383}, {"name": "Onyeka Okongwu", "points": 108.0, "playerId": 4431680}], "Anthony Davis": [{"name": "Anthony Davis", "points": 151.0, "playerId": 6583}, {"name": "Jimmy Butler III", "points": 118.0, "playerId": 6430}, {"name": "Franz Wagner", "points": 108.0, "playerId": 4566434}, {"name": "Cam Thomas", "points": 101.0, "playerId": 4432174}, {"name": "Immanuel Quickley", "points": 99.0, "playerId": 4395724}], "Shai-K47": [{"name": "Austin Reaves", "points": 195.0, "playerId": 4066457}, {"name": "Shai Gilgeous-Alexander", "points": 192.0, "playerId": 4278073}, {"name": "Tyrese Maxey", "points": 120.0, "playerId": 4431678}, {"name": "Ivica Zubac", "points": 97.0, "playerId": 4017837}, {"name": "Dylan Harper", "points": 86.0, "playerId": 5037871}], "Ay-ton of Drugs ": [{"name": "Donovan Mitchell", "points": 136.0, "playerId": 3908809}, {"name": "Nikola Jokic", "points": 114.0, "playerId": 3112335}, {"name": "Jrue Holiday", "points": 107.0, "playerId": 3995}, {"name": "Alperen Sengun", "points": 105.0, "playerId": 4871144}, {"name": "Collin Sexton", "points": 97.0, "playerId": 4277811}], "Its Not Delivery, Its Dejounte": [{"name": "Giannis Antetokounmpo", "points": 213.0, "playerId": 3032977}, {"name": "Julius Randle", "points": 146.0, "playerId": 3064514}, {"name": "Jalen Brunson", "points": 138.0, "playerId": 3934672}, {"name": "Alex Sarr", "points": 111.0, "playerId": 5160992}, {"name": "Jaylen Brown", "points": 108.0, "playerId": 3917376}], "Duren Duren": [{"name": "Scottie Barnes", "points": 146.0, "playerId": 4433134}, {"name": "Chet Holmgren", "points": 131.0, "playerId": 4433255}, {"name": "Anthony Edwards", "points": 105.0, "playerId": 4594268}, {"name": "Deni Avdija", "points": 102.0, "playerId": 4683021}, {"name": "Devin Booker", "points": 97.0, "playerId": 3136193}], "NBA WhiteBoy": [{"name": "Victor Wembanyama", "points": 247.0, "playerId": 5104157}, {"name": "LaMelo Ball", "points": 181.0, "playerId": 4432816}, {"name": "Aaron Gordon", "points": 118.0, "playerId": 3064290}, {"name": "Derrick White", "points": 117.0, "playerId": 3078576}, {"name": "Michael Porter Jr.", "points": 110.0, "playerId": 4278104}], "Honolulu Kawhi'i": [{"name": "James Harden", "points": 141.0, "playerId": 3992}, {"name": "Kawhi Leonard", "points": 124.0, "playerId": 6450}, {"name": "Malik Monk", "points": 113.0, "playerId": 4066262}, {"name": "Karl-Anthony Towns", "points": 109.0, "playerId": 3136195}, {"name": "Zion Williamson", "points": 102.0, "playerId": 4395628}], "APPLYING PASCALS": [{"name": "Luka Doncic", "points": 162.0, "playerId": 3945274}, {"name": "Pascal Siakam", "points": 146.0, "playerId": 3149673}, {"name": "DeMar DeRozan", "points": 124.0, "playerId": 3978}, {"name": "RJ Barrett", "points": 123.0, "playerId": 4395625}, {"name": "Nikola Vucevic", "points": 83.0, "playerId": 6478}]}, "2": {"bridges bridges and bridges": [{"name": "Stephen Curry", "points": 69.0, "playerId": 3975}, {"name": "Mikal Bridges", "points": 54.0, "playerId": 3147657}, {"name": "Trae Young", "points": 48.0, "playerId": 4277905}, {"name": "Jaime Jaquez Jr.", "points": 46.0, "playerId": 4432848}, {"name": "Onyeka Okongwu", "points": 43.0, "playerId": 4431680}], "Shai-K47": [{"name": "Tyrese Maxey", "points": 126.0, "playerId": 4431678}, {"name": "Shai Gilgeous-Alexander", "points": 103.0, "playerId": 4278073}, {"name": "Lauri Markkanen", "points": 71.0, "playerId": 4066336}, {"name": "Walker Kessler", "points": 60.0, "playerId": 4433136}, {"name": "Austin Reaves", "points": 56.0, "playerId": 4066457}], "Its Not Delivery, Its Dejounte": [{"name": "VJ Edgecombe", "points": 81.0, "playerId": 5124612}, {"name": "Giannis Antetokounmpo", "points": 71.0, "playerId": 3032977}, {"name": "Alex Sarr", "points": 64.0, "playerId": 5160992}, {"name": "Jamal Murray", "points": 58.0, "playerId": 3936299}, {"name": "Jalen Brunson", "points": 52.0, "playerId": 3934672}], "ALDAMA-LAMA-DINGDONGS": [{"name": "Evan Mobley", "points": 47.0, "playerId": 4432158}, {"name": "Ja Morant", "points": 35.0, "playerId": 4279888}, {"name": "Santi Aldama", "points": 35.0, "playerId": 4593125}, {"name": "Amen Thompson", "points": 35.0, "playerId": 4684740}, {"name": "Myles Turner", "points": 28.0, "playerId": 3133628}], "NBA WhiteBoy": [{"name": "Kelly Oubre Jr.", "points": 94.0, "playerId": 3133603}, {"name": "Quentin Grimes", "points": 73.0, "playerId": 4397014}, {"name": "Isaiah Hartenstein", "points": 67.0, "playerId": 4222252}, {"name": "Victor Wembanyama", "points": 53.0, "playerId": 5104157}, {"name": "Josh Giddey", "points": 43.0, "playerId": 4871145}], "Anthony Davis": [{"name": "Jimmy Butler III", "points": 72.0, "playerId": 6430}, {"name": "Ryan Rollins", "points": 56.0, "playerId": 4591725}, {"name": "Anthony Davis", "points": 50.0, "playerId": 6583}, {"name": "Keyonte George", "points": 47.0, "playerId": 4433627}, {"name": "Immanuel Quickley", "points": 46.0, "playerId": 4395724}], "APPLYING PASCALS": [{"name": "Aaron Wiggins", "points": 66.0, "playerId": 4397183}, {"name": "Nikola Vucevic", "points": 58.0, "playerId": 6478}, {"name": "Tari Eason", "points": 48.0, "playerId": 4433192}, {"name": "Deandre Ayton", "points": 35.0, "playerId": 4278129}, {"name": "Desmond Bane", "points": 34.0, "playerId": 4066320}], "Ay-ton of Drugs ": [{"name": "Nikola Jokic", "points": 78.0, "playerId": 3112335}, {"name": "Jrue Holiday", "points": 58.0, "playerId": 3995}, {"name": "Kyshawn George", "points": 54.0, "playerId": 5174563}, {"name": "Alperen Sengun", "points": 42.0, "playerId": 4871144}, {"name": "Donovan Mitchell", "points": 39.0, "playerId": 3908809}], "Honolulu Kawhi'i": [{"name": "Draymond Green", "points": 60.0, "playerId": 6589}, {"name": "Andrew Wiggins", "points": 43.0, "playerId": 3059319}, {"name": "Jarrett Allen", "points": 30.0, "playerId": 4066328}, {"name": "CJ McCollum", "points": 27.0, "playerId": 2490149}, {"name": "Kawhi Leonard", "points": 26.0, "playerId": 6450}], "Duren Duren": [{"name": "Paolo Banchero", "points": 60.0, "playerId": 4432573}, {"name": "Devin Booker", "points": 57.0, "playerId": 3136193}, {"name": "Deni Avdija", "points": 51.0, "playerId": 4683021}, {"name": "Jabari Smith Jr.", "points": 25.0, "playerId": 4432639}, {"name": "Matas Buzelis", "points": 24.0, "playerId": 4711294}]}}};
+        const topTeamByWeek = {"weeks": [1, 2], "top_teams": {"1": {"team": "NBA WhiteBoy", "points": 1426.0}, "2": {"team": "Its Not Delivery, Its Dejounte", "points": 631.0}}};
         const topPlayersByWeek = {"weeks": [1, 2], "top_players": {"1": [{"name": "Victor Wembanyama", "points": 247.0, "playerId": 5104157, "team": "NBA WhiteBoy"}, {"name": "Giannis Antetokounmpo", "points": 213.0, "playerId": 3032977, "team": "Its Not Delivery, Its Dejounte"}, {"name": "Austin Reaves", "points": 195.0, "playerId": 4066457, "team": "Shai-K47"}], "2": [{"name": "Tyrese Maxey", "points": 126.0, "playerId": 4431678, "team": "Shai-K47"}, {"name": "Shai Gilgeous-Alexander", "points": 103.0, "playerId": 4278073, "team": "Shai-K47"}, {"name": "Kelly Oubre Jr.", "points": 94.0, "playerId": 3133603, "team": "NBA WhiteBoy"}]}};
+        const allPlayRecords = {"weeks": [1, 2], "teams": {"NBA WhiteBoy": {"weekly_wins": [9, 7], "weekly_losses": [0, 2], "cumulative_wins": 16, "cumulative_losses": 2, "win_percentage": 0.8888888888888888}, "Its Not Delivery, Its Dejounte": {"weekly_wins": [8, 9], "weekly_losses": [1, 0], "cumulative_wins": 17, "cumulative_losses": 1, "win_percentage": 0.9444444444444444}, "Duren Duren": {"weekly_wins": [0, 0], "weekly_losses": [9, 9], "cumulative_wins": 0, "cumulative_losses": 18, "win_percentage": 0.0}, "APPLYING PASCALS": {"weekly_wins": [3, 2], "weekly_losses": [6, 7], "cumulative_wins": 5, "cumulative_losses": 13, "win_percentage": 0.2777777777777778}, "ALDAMA-LAMA-DINGDONGS": {"weekly_wins": [6, 3], "weekly_losses": [3, 6], "cumulative_wins": 9, "cumulative_losses": 9, "win_percentage": 0.5}, "Ay-ton of Drugs ": {"weekly_wins": [5, 4], "weekly_losses": [4, 5], "cumulative_wins": 9, "cumulative_losses": 9, "win_percentage": 0.5}, "Anthony Davis": {"weekly_wins": [2, 5], "weekly_losses": [7, 4], "cumulative_wins": 7, "cumulative_losses": 11, "win_percentage": 0.3888888888888889}, "bridges bridges and bridges": {"weekly_wins": [7, 6], "weekly_losses": [2, 3], "cumulative_wins": 13, "cumulative_losses": 5, "win_percentage": 0.7222222222222222}, "Honolulu Kawhi'i": {"weekly_wins": [1, 1], "weekly_losses": [8, 8], "cumulative_wins": 2, "cumulative_losses": 16, "win_percentage": 0.1111111111111111}, "Shai-K47": {"weekly_wins": [4, 8], "weekly_losses": [5, 1], "cumulative_wins": 12, "cumulative_losses": 6, "win_percentage": 0.6666666666666666}}};
         const marginData = {"labels": ["0-42", "42-84", "84-126", "126-168", "168-210", "210-253", "253-295", "295-337", "337-379", "379-421"], "counts": [2, 3, 1, 0, 1, 0, 2, 0, 0, 1]};
         const teamColors = {"NBA WhiteBoy": "#FF6384", "Its Not Delivery, Its Dejounte": "#36A2EB", "Duren Duren": "#FFCE56", "APPLYING PASCALS": "#4BC0C0", "ALDAMA-LAMA-DINGDONGS": "#9966FF", "Ay-ton of Drugs ": "#FF9F40", "Anthony Davis": "#FF6384", "bridges bridges and bridges": "#C9CBCF", "Honolulu Kawhi'i": "#4BC0C0", "Shai-K47": "#FF6384"};
-        const teamLogos = {"NBA WhiteBoy": "https://i.redd.it/9gwy9lt732091.jpg", "Its Not Delivery, Its Dejounte": "https://g.espncdn.com/lm-static/logo-packs/fba/Jerseys-ESPN/fba-jerseys-07.svg", "Duren Duren": "https://g.espncdn.com/lm-static/fba/images/default_logos/20.svg", "APPLYING PASCALS": "https://g.espncdn.com/lm-static/fba/images/default_logos/1.svg", "ALDAMA-LAMA-DINGDONGS": "https://i1.sndcdn.com/avatars-000416422656-cgstbk-t500x500.jpg", "Ay-ton of Drugs ": "https://g.espncdn.com/lm-static/logo-packs/core/BobsBurgers/Bob_OnModel.svg", "Anthony Davis": "https://g.espncdn.com/lm-static/fba/images/default_logos/16.svg", "bridges bridges and bridges": "https://g.espncdn.com/lm-static/logo-packs/core/RalphBreaksTheInternet/ralph-11.svg", "Honolulu Kawhi'i": "https://g.espncdn.com/lm-static/fba/images/default_logos/3.svg", "Shai-K47": "https: // g.espncdn.com/lm-static/logo-packs/core/OldTimeMickeyAndFriends/Basketball_Mickey.svg"};
+        const teamLogos = {"NBA WhiteBoy": "https://i.redd.it/9gwy9lt732091.jpg", "Its Not Delivery, Its Dejounte": "https://g.espncdn.com/lm-static/logo-packs/fba/Jerseys-ESPN/fba-jerseys-07.svg", "Duren Duren": "https://g.espncdn.com/lm-static/fba/images/default_logos/20.svg", "APPLYING PASCALS": "https://g.espncdn.com/lm-static/fba/images/default_logos/1.svg", "ALDAMA-LAMA-DINGDONGS": "https://i1.sndcdn.com/avatars-000416422656-cgstbk-t500x500.jpg", "Ay-ton of Drugs ": "https://g.espncdn.com/lm-static/logo-packs/core/BobsBurgers/Bob_OnModel.svg", "Anthony Davis": "https://g.espncdn.com/lm-static/fba/images/default_logos/16.svg", "bridges bridges and bridges": "https://g.espncdn.com/lm-static/logo-packs/core/RalphBreaksTheInternet/ralph-11.svg", "Honolulu Kawhi'i": "https://g.espncdn.com/lm-static/fba/images/default_logos/3.svg", "Shai-K47": "https://g.espncdn.com/lm-static/logo-packs/core/OldTimeMickeyAndFriends/Basketball_Mickey.svg"};
 
         // Chart.js default settings for dark theme
         Chart.defaults.color = '#e4e6eb';
@@ -736,7 +847,229 @@
             }
         });
 
-        // 5. Top Player Contributions with Images
+        // 5. All-Play Standings Chart
+        const allPlayStandingsCtx = document.getElementById('allPlayStandingsChart').getContext('2d');
+
+        // Sort teams by win percentage
+        const teamsByWinPct = Object.keys(allPlayRecords.teams)
+            .map(teamName => ({
+                name: teamName,
+                wins: allPlayRecords.teams[teamName].cumulative_wins,
+                losses: allPlayRecords.teams[teamName].cumulative_losses,
+                winPct: allPlayRecords.teams[teamName].win_percentage
+            }))
+            .sort((a, b) => b.winPct - a.winPct);
+
+        const allPlayStandingsChart = new Chart(allPlayStandingsCtx, {
+            type: 'bar',
+            data: {
+                labels: teamsByWinPct.map(t => t.name),
+                datasets: [
+                    {
+                        label: 'Wins',
+                        data: teamsByWinPct.map(t => t.wins),
+                        backgroundColor: '#48bb78',
+                        borderColor: '#38a169',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Losses',
+                        data: teamsByWinPct.map(t => t.losses),
+                        backgroundColor: '#f56565',
+                        borderColor: '#e53e3e',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        callbacks: {
+                            footer: function(tooltipItems) {
+                                const teamName = tooltipItems[0].label;
+                                const teamData = teamsByWinPct.find(t => t.name === teamName);
+                                const winPct = (teamData.winPct * 100).toFixed(1);
+                                const record = `${teamData.wins}-${teamData.losses}`;
+                                return `Record: ${record} (${winPct}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: false,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            color: '#e4e6eb',
+                            font: {
+                                size: 11,
+                                weight: 600
+                            },
+                            callback: function(value, index) {
+                                const teamName = teamsByWinPct[index].name;
+                                // Add team logo icon if available
+                                return teamName;
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Games'
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'customLegend',
+                afterDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    const chartArea = chart.chartArea;
+                    const datasets = chart.data.datasets;
+
+                    // Draw custom legend with team logos on x-axis
+                    chart.data.labels.forEach((label, index) => {
+                        const meta = chart.getDatasetMeta(0);
+                        const bar = meta.data[index];
+                        const x = bar.x;
+
+                        // Draw team logo if available
+                        if (teamLogoImages[label]) {
+                            const logo = teamLogoImages[label];
+                            const logoSize = 24;
+                            ctx.drawImage(logo, x - logoSize/2, chartArea.bottom + 5, logoSize, logoSize);
+                        }
+                    });
+                }
+            }]
+        });
+
+        // 6. All-Play Win Percentage Progression Chart
+        const allPlayProgressionCtx = document.getElementById('allPlayProgressionChart').getContext('2d');
+
+        // Calculate cumulative win percentage for each team by week
+        const allPlayProgressionData = {};
+        Object.keys(allPlayRecords.teams).forEach(teamName => {
+            const weeklyWins = allPlayRecords.teams[teamName].weekly_wins;
+            const weeklyLosses = allPlayRecords.teams[teamName].weekly_losses;
+            const cumulativeWinPcts = [];
+
+            let totalWins = 0;
+            let totalLosses = 0;
+
+            for (let i = 0; i < weeklyWins.length; i++) {
+                totalWins += weeklyWins[i];
+                totalLosses += weeklyLosses[i];
+                const totalGames = totalWins + totalLosses;
+                const winPct = totalGames > 0 ? (totalWins / totalGames) * 100 : 0;
+                cumulativeWinPcts.push(winPct);
+            }
+
+            allPlayProgressionData[teamName] = cumulativeWinPcts;
+        });
+
+        const allPlayProgressionChart = new Chart(allPlayProgressionCtx, {
+            type: 'line',
+            data: {
+                labels: allPlayRecords.weeks.map(w => `Week ${w}`),
+                datasets: Object.keys(allPlayProgressionData).map(teamName => {
+                    const dataPoints = allPlayProgressionData[teamName];
+                    const numPoints = dataPoints.length;
+
+                    let pointStyle = 'circle';
+                    const pointRadii = Array(numPoints).fill(4);
+                    const pointHoverRadii = Array(numPoints).fill(6);
+
+                    if (teamLogoImages[teamName]) {
+                        pointStyle = teamLogoImages[teamName];
+                        pointRadii[numPoints - 1] = 15;
+                        pointHoverRadii[numPoints - 1] = 18;
+                    }
+
+                    return {
+                        label: '  ' + teamName,
+                        data: dataPoints,
+                        borderColor: teamColors[teamName],
+                        backgroundColor: teamColors[teamName] + '20',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointStyle: pointStyle,
+                        pointRadius: pointRadii,
+                        pointHoverRadius: pointHoverRadii
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const teamName = context.dataset.label.trim();
+                                const weekIndex = context.dataIndex;
+                                const teamData = allPlayRecords.teams[teamName];
+                                const wins = teamData.weekly_wins.slice(0, weekIndex + 1).reduce((a, b) => a + b, 0);
+                                const losses = teamData.weekly_losses.slice(0, weekIndex + 1).reduce((a, b) => a + b, 0);
+                                const winPct = context.parsed.y.toFixed(1);
+                                return `${context.dataset.label}: ${winPct}% (${wins}-${losses})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Win Percentage'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#2d3748'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 7. Top Player Contributions with Images
         const latestWeek = playerContributions.weeks[playerContributions.weeks.length - 1];
         const latestContributions = playerContributions.contributions[latestWeek];
 
@@ -839,6 +1172,7 @@
 
         function renderWeekSelector() {
             const selector = document.getElementById('weekSelector');
+            selector.innerHTML = '';  // Clear existing buttons
             topPlayersByWeek.weeks.forEach(week => {
                 const button = document.createElement('button');
                 button.className = 'week-button';
@@ -918,6 +1252,76 @@
 
         renderWeekSelector();
         renderTopPlayers();
+
+        // Top Team by Week
+        let selectedTeamWeek = topTeamByWeek.weeks[topTeamByWeek.weeks.length - 1];
+
+        function renderTopTeamWeekSelector() {
+            const selector = document.getElementById('topTeamWeekSelector');
+            selector.innerHTML = '';  // Clear existing buttons
+            topTeamByWeek.weeks.forEach(week => {
+                const button = document.createElement('button');
+                button.className = 'week-button';
+                button.textContent = `Week ${week}`;
+                if (week === selectedTeamWeek) {
+                    button.classList.add('active');
+                }
+                button.onclick = () => {
+                    selectedTeamWeek = week;
+                    renderTopTeamWeekSelector();
+                    renderTopTeam();
+                };
+                selector.appendChild(button);
+            });
+        }
+
+        function renderTopTeam() {
+            const display = document.getElementById('topTeamDisplay');
+            display.innerHTML = '';
+
+            const teamData = topTeamByWeek.top_teams[selectedTeamWeek];
+
+            const card = document.createElement('div');
+            card.className = 'top-team-card';
+
+            // Trophy emoji
+            const trophy = document.createElement('div');
+            trophy.className = 'top-team-trophy';
+            trophy.textContent = '👑';
+            card.appendChild(trophy);
+
+            // Team logo
+            if (teamLogos[teamData.team]) {
+                const logo = document.createElement('img');
+                logo.className = 'top-team-logo';
+                logo.src = teamLogos[teamData.team];
+                logo.alt = teamData.team;
+                card.appendChild(logo);
+            }
+
+            // Team name
+            const name = document.createElement('div');
+            name.className = 'top-team-name';
+            name.textContent = teamData.team;
+            card.appendChild(name);
+
+            // Team points
+            const points = document.createElement('div');
+            points.className = 'top-team-points';
+            points.textContent = teamData.points.toFixed(1);
+            card.appendChild(points);
+
+            // Label
+            const label = document.createElement('div');
+            label.className = 'top-team-label';
+            label.textContent = 'Total Points';
+            card.appendChild(label);
+
+            display.appendChild(card);
+        }
+
+        renderTopTeamWeekSelector();
+        renderTopTeam();
     </script>
 </body>
 </html>
