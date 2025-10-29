@@ -174,6 +174,149 @@
             grid-column: 1 / -1;
         }
 
+        .week-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .week-button {
+            padding: 8px 16px;
+            background: #2d3748;
+            border: 2px solid #4a5568;
+            border-radius: 6px;
+            color: #e4e6eb;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .week-button:hover {
+            background: #4a5568;
+            border-color: #4299e1;
+        }
+
+        .week-button.active {
+            background: #4299e1;
+            border-color: #4299e1;
+            color: white;
+        }
+
+        .top-players-display {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 20px 0;
+        }
+
+        .top-player-card {
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 20px;
+            width: 280px;
+            text-align: center;
+            border: 2px solid #4a5568;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .top-player-card:hover {
+            transform: translateY(-4px);
+            border-color: #4299e1;
+        }
+
+        .top-player-card.rank-1 {
+            border-color: #ffd700;
+        }
+
+        .top-player-card.rank-2 {
+            border-color: #c0c0c0;
+        }
+
+        .top-player-card.rank-3 {
+            border-color: #cd7f32;
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            border: 3px solid #1a202c;
+        }
+
+        .rank-badge.rank-1 {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+        }
+
+        .rank-badge.rank-2 {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+            color: #333;
+        }
+
+        .rank-badge.rank-3 {
+            background: linear-gradient(135deg, #cd7f32 0%, #e6a157 100%);
+            color: white;
+        }
+
+        .top-player-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #4299e1;
+            margin: 15px auto 15px;
+            background: #2d3748;
+        }
+
+        .top-player-photo-error {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 15px auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 2.5rem;
+            border: 4px solid #4299e1;
+        }
+
+        .top-player-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .top-player-team {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-bottom: 12px;
+        }
+
+        .top-player-points {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4299e1;
+        }
+
         footer {
             text-align: center;
             margin-top: 40px;
@@ -202,7 +345,7 @@
         <header>
             <h1>The F-League</h1>
             <p class="subtitle">Fantasy Basketball Stats Dashboard - 2025-2026 Season</p>
-            <p class="meta">Last Updated: October 28, 2025 at 11:31 PM -0700</p>
+            <p class="meta">Last Updated: October 29, 2025 at 12:07 AM -0700</p>
         </header>
 
         <div class="charts-grid">
@@ -235,22 +378,29 @@
             </div>
 
             <div class="chart-container full-width">
+                <h2>🏆 Top 3 Players of the Week</h2>
+                <div class="week-selector" id="weekSelector"></div>
+                <div class="top-players-display" id="topPlayersDisplay"></div>
+            </div>
+
+            <div class="chart-container full-width">
                 <h2>⭐ Top Player Contributions by Team (Week 2)</h2>
                 <div class="player-contributions-grid" id="playerContributionsGrid"></div>
             </div>
         </div>
 
         <footer>
-            <p>Generated with ESPN API | Data accurate as of October 28, 2025 at 11:31 PM -0700</p>
+            <p>Generated with ESPN API | Data accurate as of October 29, 2025 at 12:07 AM -0700</p>
         </footer>
     </div>
 
     <script>
         // Embedded data
-        const weeklyScoresData = {"weeks": [1, 2], "teams": {"NBA WhiteBoy": [1426.0, 551.0], "Its Not Delivery, Its Dejounte": [1370.0, 631.0], "Duren Duren": [1005.0, 300.0], "APPLYING PASCALS": [1041.0, 335.0], "ALDAMA-LAMA-DINGDONGS": [1146.0, 345.0], "Ay-ton of Drugs ": [1116.0, 459.0], "Anthony Davis": [1024.0, 500.0], "bridges bridges and bridges": [1341.0, 550.0], "Honolulu Kawhi'i": [1011.0, 308.0], "Shai-K47": [1108.0, 624.0]}};
-        const cumulativePointsData = {"weeks": [1, 2], "teams": {"NBA WhiteBoy": [1426.0, 1977.0], "Its Not Delivery, Its Dejounte": [1370.0, 2001.0], "Duren Duren": [1005.0, 1305.0], "APPLYING PASCALS": [1041.0, 1376.0], "ALDAMA-LAMA-DINGDONGS": [1146.0, 1491.0], "Ay-ton of Drugs ": [1116.0, 1575.0], "Anthony Davis": [1024.0, 1524.0], "bridges bridges and bridges": [1341.0, 1891.0], "Honolulu Kawhi'i": [1011.0, 1319.0], "Shai-K47": [1108.0, 1732.0]}};
+        const weeklyScoresData = {"weeks": [1, 2], "teams": {"NBA WhiteBoy": [1426.0, 551.0], "Its Not Delivery, Its Dejounte": [1370.0, 631.0], "Duren Duren": [1005.0, 300.0], "APPLYING PASCALS": [1041.0, 335.0], "ALDAMA-LAMA-DINGDONGS": [1146.0, 345.0], "Ay-ton of Drugs ": [1116.0, 459.0], "Anthony Davis": [1024.0, 500.0], "bridges bridges and bridges": [1341.0, 550.0], "Honolulu Kawhi'i": [1011.0, 309.0], "Shai-K47": [1108.0, 623.0]}};
+        const cumulativePointsData = {"weeks": [1, 2], "teams": {"NBA WhiteBoy": [1426.0, 1977.0], "Its Not Delivery, Its Dejounte": [1370.0, 2001.0], "Duren Duren": [1005.0, 1305.0], "APPLYING PASCALS": [1041.0, 1376.0], "ALDAMA-LAMA-DINGDONGS": [1146.0, 1491.0], "Ay-ton of Drugs ": [1116.0, 1575.0], "Anthony Davis": [1024.0, 1524.0], "bridges bridges and bridges": [1341.0, 1891.0], "Honolulu Kawhi'i": [1011.0, 1320.0], "Shai-K47": [1108.0, 1731.0]}};
         const standingsData = {"weeks": [1, 2], "teams": {"NBA WhiteBoy": [1, 1], "Its Not Delivery, Its Dejounte": [2, 2], "Duren Duren": [6, 6], "APPLYING PASCALS": [3, 3], "ALDAMA-LAMA-DINGDONGS": [7, 7], "Ay-ton of Drugs ": [8, 8], "Anthony Davis": [9, 9], "bridges bridges and bridges": [4, 4], "Honolulu Kawhi'i": [10, 10], "Shai-K47": [5, 5]}};
-        const playerContributions = {"weeks": [1, 2], "contributions": {"1": {"ALDAMA-LAMA-DINGDONGS": [{"name": "Evan Mobley", "points": 132.0, "playerId": 4432158}, {"name": "Norman Powell", "points": 131.0, "playerId": 2595516}, {"name": "Zach LaVine", "points": 112.0, "playerId": 3064440}, {"name": "Brandon Ingram", "points": 107.0, "playerId": 3913176}, {"name": "Cade Cunningham", "points": 107.0, "playerId": 4432166}], "bridges bridges and bridges": [{"name": "Stephen Curry", "points": 188.0, "playerId": 3975}, {"name": "Mikal Bridges", "points": 123.0, "playerId": 3147657}, {"name": "Ausar Thompson", "points": 118.0, "playerId": 4684742}, {"name": "Miles Bridges", "points": 110.0, "playerId": 4066383}, {"name": "Onyeka Okongwu", "points": 108.0, "playerId": 4431680}], "Anthony Davis": [{"name": "Anthony Davis", "points": 151.0, "playerId": 6583}, {"name": "Jimmy Butler III", "points": 118.0, "playerId": 6430}, {"name": "Franz Wagner", "points": 108.0, "playerId": 4566434}, {"name": "Cam Thomas", "points": 101.0, "playerId": 4432174}, {"name": "Immanuel Quickley", "points": 99.0, "playerId": 4395724}], "Shai-K47": [{"name": "Austin Reaves", "points": 195.0, "playerId": 4066457}, {"name": "Shai Gilgeous-Alexander", "points": 192.0, "playerId": 4278073}, {"name": "Tyrese Maxey", "points": 120.0, "playerId": 4431678}, {"name": "Ivica Zubac", "points": 97.0, "playerId": 4017837}, {"name": "Dylan Harper", "points": 86.0, "playerId": 5037871}], "Ay-ton of Drugs ": [{"name": "Donovan Mitchell", "points": 136.0, "playerId": 3908809}, {"name": "Nikola Jokic", "points": 114.0, "playerId": 3112335}, {"name": "Jrue Holiday", "points": 107.0, "playerId": 3995}, {"name": "Alperen Sengun", "points": 105.0, "playerId": 4871144}, {"name": "Collin Sexton", "points": 97.0, "playerId": 4277811}], "Its Not Delivery, Its Dejounte": [{"name": "Giannis Antetokounmpo", "points": 213.0, "playerId": 3032977}, {"name": "Julius Randle", "points": 146.0, "playerId": 3064514}, {"name": "Jalen Brunson", "points": 138.0, "playerId": 3934672}, {"name": "Alex Sarr", "points": 111.0, "playerId": 5160992}, {"name": "Jaylen Brown", "points": 108.0, "playerId": 3917376}], "Duren Duren": [{"name": "Scottie Barnes", "points": 146.0, "playerId": 4433134}, {"name": "Chet Holmgren", "points": 131.0, "playerId": 4433255}, {"name": "Anthony Edwards", "points": 105.0, "playerId": 4594268}, {"name": "Deni Avdija", "points": 102.0, "playerId": 4683021}, {"name": "Devin Booker", "points": 97.0, "playerId": 3136193}], "NBA WhiteBoy": [{"name": "Victor Wembanyama", "points": 247.0, "playerId": 5104157}, {"name": "LaMelo Ball", "points": 181.0, "playerId": 4432816}, {"name": "Aaron Gordon", "points": 118.0, "playerId": 3064290}, {"name": "Derrick White", "points": 117.0, "playerId": 3078576}, {"name": "Michael Porter Jr.", "points": 110.0, "playerId": 4278104}], "Honolulu Kawhi'i": [{"name": "James Harden", "points": 141.0, "playerId": 3992}, {"name": "Kawhi Leonard", "points": 124.0, "playerId": 6450}, {"name": "Malik Monk", "points": 113.0, "playerId": 4066262}, {"name": "Karl-Anthony Towns", "points": 109.0, "playerId": 3136195}, {"name": "Zion Williamson", "points": 102.0, "playerId": 4395628}], "APPLYING PASCALS": [{"name": "Luka Doncic", "points": 162.0, "playerId": 3945274}, {"name": "Pascal Siakam", "points": 146.0, "playerId": 3149673}, {"name": "DeMar DeRozan", "points": 124.0, "playerId": 3978}, {"name": "RJ Barrett", "points": 123.0, "playerId": 4395625}, {"name": "Nikola Vucevic", "points": 83.0, "playerId": 6478}]}, "2": {"bridges bridges and bridges": [{"name": "Stephen Curry", "points": 69.0, "playerId": 3975}, {"name": "Mikal Bridges", "points": 54.0, "playerId": 3147657}, {"name": "Trae Young", "points": 48.0, "playerId": 4277905}, {"name": "Jaime Jaquez Jr.", "points": 46.0, "playerId": 4432848}, {"name": "Onyeka Okongwu", "points": 43.0, "playerId": 4431680}], "Shai-K47": [{"name": "Tyrese Maxey", "points": 126.0, "playerId": 4431678}, {"name": "Shai Gilgeous-Alexander", "points": 103.0, "playerId": 4278073}, {"name": "Lauri Markkanen", "points": 71.0, "playerId": 4066336}, {"name": "Walker Kessler", "points": 60.0, "playerId": 4433136}, {"name": "Austin Reaves", "points": 56.0, "playerId": 4066457}], "Its Not Delivery, Its Dejounte": [{"name": "VJ Edgecombe", "points": 81.0, "playerId": 5124612}, {"name": "Giannis Antetokounmpo", "points": 71.0, "playerId": 3032977}, {"name": "Alex Sarr", "points": 64.0, "playerId": 5160992}, {"name": "Jamal Murray", "points": 58.0, "playerId": 3936299}, {"name": "Jalen Brunson", "points": 52.0, "playerId": 3934672}], "ALDAMA-LAMA-DINGDONGS": [{"name": "Evan Mobley", "points": 47.0, "playerId": 4432158}, {"name": "Ja Morant", "points": 35.0, "playerId": 4279888}, {"name": "Santi Aldama", "points": 35.0, "playerId": 4593125}, {"name": "Amen Thompson", "points": 35.0, "playerId": 4684740}, {"name": "Myles Turner", "points": 28.0, "playerId": 3133628}], "NBA WhiteBoy": [{"name": "Kelly Oubre Jr.", "points": 94.0, "playerId": 3133603}, {"name": "Quentin Grimes", "points": 73.0, "playerId": 4397014}, {"name": "Isaiah Hartenstein", "points": 67.0, "playerId": 4222252}, {"name": "Victor Wembanyama", "points": 53.0, "playerId": 5104157}, {"name": "Josh Giddey", "points": 43.0, "playerId": 4871145}], "Anthony Davis": [{"name": "Jimmy Butler III", "points": 72.0, "playerId": 6430}, {"name": "Ryan Rollins", "points": 56.0, "playerId": 4591725}, {"name": "Anthony Davis", "points": 50.0, "playerId": 6583}, {"name": "Keyonte George", "points": 47.0, "playerId": 4433627}, {"name": "Immanuel Quickley", "points": 46.0, "playerId": 4395724}], "APPLYING PASCALS": [{"name": "Aaron Wiggins", "points": 66.0, "playerId": 4397183}, {"name": "Nikola Vucevic", "points": 58.0, "playerId": 6478}, {"name": "Tari Eason", "points": 48.0, "playerId": 4433192}, {"name": "Deandre Ayton", "points": 35.0, "playerId": 4278129}, {"name": "Desmond Bane", "points": 34.0, "playerId": 4066320}], "Ay-ton of Drugs ": [{"name": "Nikola Jokic", "points": 78.0, "playerId": 3112335}, {"name": "Jrue Holiday", "points": 58.0, "playerId": 3995}, {"name": "Kyshawn George", "points": 54.0, "playerId": 5174563}, {"name": "Alperen Sengun", "points": 42.0, "playerId": 4871144}, {"name": "Donovan Mitchell", "points": 39.0, "playerId": 3908809}], "Honolulu Kawhi'i": [{"name": "Draymond Green", "points": 60.0, "playerId": 6589}, {"name": "Andrew Wiggins", "points": 43.0, "playerId": 3059319}, {"name": "Jarrett Allen", "points": 30.0, "playerId": 4066328}, {"name": "CJ McCollum", "points": 27.0, "playerId": 2490149}, {"name": "James Harden", "points": 26.0, "playerId": 3992}], "Duren Duren": [{"name": "Paolo Banchero", "points": 60.0, "playerId": 4432573}, {"name": "Devin Booker", "points": 57.0, "playerId": 3136193}, {"name": "Deni Avdija", "points": 51.0, "playerId": 4683021}, {"name": "Jabari Smith Jr.", "points": 25.0, "playerId": 4432639}, {"name": "Matas Buzelis", "points": 24.0, "playerId": 4711294}]}}};
+        const playerContributions = {"weeks": [1, 2], "contributions": {"1": {"ALDAMA-LAMA-DINGDONGS": [{"name": "Evan Mobley", "points": 132.0, "playerId": 4432158}, {"name": "Norman Powell", "points": 131.0, "playerId": 2595516}, {"name": "Zach LaVine", "points": 112.0, "playerId": 3064440}, {"name": "Brandon Ingram", "points": 107.0, "playerId": 3913176}, {"name": "Cade Cunningham", "points": 107.0, "playerId": 4432166}], "bridges bridges and bridges": [{"name": "Stephen Curry", "points": 188.0, "playerId": 3975}, {"name": "Mikal Bridges", "points": 123.0, "playerId": 3147657}, {"name": "Ausar Thompson", "points": 118.0, "playerId": 4684742}, {"name": "Miles Bridges", "points": 110.0, "playerId": 4066383}, {"name": "Onyeka Okongwu", "points": 108.0, "playerId": 4431680}], "Anthony Davis": [{"name": "Anthony Davis", "points": 151.0, "playerId": 6583}, {"name": "Jimmy Butler III", "points": 118.0, "playerId": 6430}, {"name": "Franz Wagner", "points": 108.0, "playerId": 4566434}, {"name": "Cam Thomas", "points": 101.0, "playerId": 4432174}, {"name": "Immanuel Quickley", "points": 99.0, "playerId": 4395724}], "Shai-K47": [{"name": "Austin Reaves", "points": 195.0, "playerId": 4066457}, {"name": "Shai Gilgeous-Alexander", "points": 192.0, "playerId": 4278073}, {"name": "Tyrese Maxey", "points": 120.0, "playerId": 4431678}, {"name": "Ivica Zubac", "points": 97.0, "playerId": 4017837}, {"name": "Dylan Harper", "points": 86.0, "playerId": 5037871}], "Ay-ton of Drugs ": [{"name": "Donovan Mitchell", "points": 136.0, "playerId": 3908809}, {"name": "Nikola Jokic", "points": 114.0, "playerId": 3112335}, {"name": "Jrue Holiday", "points": 107.0, "playerId": 3995}, {"name": "Alperen Sengun", "points": 105.0, "playerId": 4871144}, {"name": "Collin Sexton", "points": 97.0, "playerId": 4277811}], "Its Not Delivery, Its Dejounte": [{"name": "Giannis Antetokounmpo", "points": 213.0, "playerId": 3032977}, {"name": "Julius Randle", "points": 146.0, "playerId": 3064514}, {"name": "Jalen Brunson", "points": 138.0, "playerId": 3934672}, {"name": "Alex Sarr", "points": 111.0, "playerId": 5160992}, {"name": "Jaylen Brown", "points": 108.0, "playerId": 3917376}], "Duren Duren": [{"name": "Scottie Barnes", "points": 146.0, "playerId": 4433134}, {"name": "Chet Holmgren", "points": 131.0, "playerId": 4433255}, {"name": "Anthony Edwards", "points": 105.0, "playerId": 4594268}, {"name": "Deni Avdija", "points": 102.0, "playerId": 4683021}, {"name": "Devin Booker", "points": 97.0, "playerId": 3136193}], "NBA WhiteBoy": [{"name": "Victor Wembanyama", "points": 247.0, "playerId": 5104157}, {"name": "LaMelo Ball", "points": 181.0, "playerId": 4432816}, {"name": "Aaron Gordon", "points": 118.0, "playerId": 3064290}, {"name": "Derrick White", "points": 117.0, "playerId": 3078576}, {"name": "Michael Porter Jr.", "points": 110.0, "playerId": 4278104}], "Honolulu Kawhi'i": [{"name": "James Harden", "points": 141.0, "playerId": 3992}, {"name": "Kawhi Leonard", "points": 124.0, "playerId": 6450}, {"name": "Malik Monk", "points": 113.0, "playerId": 4066262}, {"name": "Karl-Anthony Towns", "points": 109.0, "playerId": 3136195}, {"name": "Zion Williamson", "points": 102.0, "playerId": 4395628}], "APPLYING PASCALS": [{"name": "Luka Doncic", "points": 162.0, "playerId": 3945274}, {"name": "Pascal Siakam", "points": 146.0, "playerId": 3149673}, {"name": "DeMar DeRozan", "points": 124.0, "playerId": 3978}, {"name": "RJ Barrett", "points": 123.0, "playerId": 4395625}, {"name": "Nikola Vucevic", "points": 83.0, "playerId": 6478}]}, "2": {"bridges bridges and bridges": [{"name": "Stephen Curry", "points": 69.0, "playerId": 3975}, {"name": "Mikal Bridges", "points": 54.0, "playerId": 3147657}, {"name": "Trae Young", "points": 48.0, "playerId": 4277905}, {"name": "Jaime Jaquez Jr.", "points": 46.0, "playerId": 4432848}, {"name": "Onyeka Okongwu", "points": 43.0, "playerId": 4431680}], "Shai-K47": [{"name": "Tyrese Maxey", "points": 126.0, "playerId": 4431678}, {"name": "Shai Gilgeous-Alexander", "points": 103.0, "playerId": 4278073}, {"name": "Lauri Markkanen", "points": 71.0, "playerId": 4066336}, {"name": "Walker Kessler", "points": 60.0, "playerId": 4433136}, {"name": "Austin Reaves", "points": 56.0, "playerId": 4066457}], "Its Not Delivery, Its Dejounte": [{"name": "VJ Edgecombe", "points": 81.0, "playerId": 5124612}, {"name": "Giannis Antetokounmpo", "points": 71.0, "playerId": 3032977}, {"name": "Alex Sarr", "points": 64.0, "playerId": 5160992}, {"name": "Jamal Murray", "points": 58.0, "playerId": 3936299}, {"name": "Jalen Brunson", "points": 52.0, "playerId": 3934672}], "ALDAMA-LAMA-DINGDONGS": [{"name": "Evan Mobley", "points": 47.0, "playerId": 4432158}, {"name": "Ja Morant", "points": 35.0, "playerId": 4279888}, {"name": "Santi Aldama", "points": 35.0, "playerId": 4593125}, {"name": "Amen Thompson", "points": 35.0, "playerId": 4684740}, {"name": "Myles Turner", "points": 28.0, "playerId": 3133628}], "NBA WhiteBoy": [{"name": "Kelly Oubre Jr.", "points": 94.0, "playerId": 3133603}, {"name": "Quentin Grimes", "points": 73.0, "playerId": 4397014}, {"name": "Isaiah Hartenstein", "points": 67.0, "playerId": 4222252}, {"name": "Victor Wembanyama", "points": 53.0, "playerId": 5104157}, {"name": "Josh Giddey", "points": 43.0, "playerId": 4871145}], "Anthony Davis": [{"name": "Jimmy Butler III", "points": 72.0, "playerId": 6430}, {"name": "Ryan Rollins", "points": 56.0, "playerId": 4591725}, {"name": "Anthony Davis", "points": 50.0, "playerId": 6583}, {"name": "Keyonte George", "points": 47.0, "playerId": 4433627}, {"name": "Immanuel Quickley", "points": 46.0, "playerId": 4395724}], "APPLYING PASCALS": [{"name": "Aaron Wiggins", "points": 66.0, "playerId": 4397183}, {"name": "Nikola Vucevic", "points": 58.0, "playerId": 6478}, {"name": "Tari Eason", "points": 48.0, "playerId": 4433192}, {"name": "Deandre Ayton", "points": 35.0, "playerId": 4278129}, {"name": "Desmond Bane", "points": 34.0, "playerId": 4066320}], "Ay-ton of Drugs ": [{"name": "Nikola Jokic", "points": 78.0, "playerId": 3112335}, {"name": "Jrue Holiday", "points": 58.0, "playerId": 3995}, {"name": "Kyshawn George", "points": 54.0, "playerId": 5174563}, {"name": "Alperen Sengun", "points": 42.0, "playerId": 4871144}, {"name": "Donovan Mitchell", "points": 39.0, "playerId": 3908809}], "Honolulu Kawhi'i": [{"name": "Draymond Green", "points": 60.0, "playerId": 6589}, {"name": "Andrew Wiggins", "points": 43.0, "playerId": 3059319}, {"name": "Jarrett Allen", "points": 30.0, "playerId": 4066328}, {"name": "CJ McCollum", "points": 27.0, "playerId": 2490149}, {"name": "Kawhi Leonard", "points": 26.0, "playerId": 6450}], "Duren Duren": [{"name": "Paolo Banchero", "points": 60.0, "playerId": 4432573}, {"name": "Devin Booker", "points": 57.0, "playerId": 3136193}, {"name": "Deni Avdija", "points": 51.0, "playerId": 4683021}, {"name": "Jabari Smith Jr.", "points": 25.0, "playerId": 4432639}, {"name": "Matas Buzelis", "points": 24.0, "playerId": 4711294}]}}};
+        const topPlayersByWeek = {"weeks": [1, 2], "top_players": {"1": [{"name": "Victor Wembanyama", "points": 247.0, "playerId": 5104157, "team": "NBA WhiteBoy"}, {"name": "Giannis Antetokounmpo", "points": 213.0, "playerId": 3032977, "team": "Its Not Delivery, Its Dejounte"}, {"name": "Austin Reaves", "points": 195.0, "playerId": 4066457, "team": "Shai-K47"}], "2": [{"name": "Tyrese Maxey", "points": 126.0, "playerId": 4431678, "team": "Shai-K47"}, {"name": "Shai Gilgeous-Alexander", "points": 103.0, "playerId": 4278073, "team": "Shai-K47"}, {"name": "Kelly Oubre Jr.", "points": 94.0, "playerId": 3133603, "team": "NBA WhiteBoy"}]}};
         const marginData = {"labels": ["0-42", "42-84", "84-126", "126-168", "168-210", "210-253", "253-295", "295-337", "337-379", "379-421"], "counts": [2, 3, 1, 0, 1, 0, 2, 0, 0, 1]};
         const teamColors = {"NBA WhiteBoy": "#FF6384", "Its Not Delivery, Its Dejounte": "#36A2EB", "Duren Duren": "#FFCE56", "APPLYING PASCALS": "#4BC0C0", "ALDAMA-LAMA-DINGDONGS": "#9966FF", "Ay-ton of Drugs ": "#FF9F40", "Anthony Davis": "#FF6384", "bridges bridges and bridges": "#C9CBCF", "Honolulu Kawhi'i": "#4BC0C0", "Shai-K47": "#FF6384"};
         const teamLogos = {"NBA WhiteBoy": "https://i.redd.it/9gwy9lt732091.jpg", "Its Not Delivery, Its Dejounte": "https://g.espncdn.com/lm-static/logo-packs/fba/Jerseys-ESPN/fba-jerseys-07.svg", "Duren Duren": "https://g.espncdn.com/lm-static/fba/images/default_logos/20.svg", "APPLYING PASCALS": "https://g.espncdn.com/lm-static/fba/images/default_logos/1.svg", "ALDAMA-LAMA-DINGDONGS": "https://i1.sndcdn.com/avatars-000416422656-cgstbk-t500x500.jpg", "Ay-ton of Drugs ": "https://g.espncdn.com/lm-static/logo-packs/core/BobsBurgers/Bob_OnModel.svg", "Anthony Davis": "https://g.espncdn.com/lm-static/fba/images/default_logos/16.svg", "bridges bridges and bridges": "https://g.espncdn.com/lm-static/logo-packs/core/RalphBreaksTheInternet/ralph-11.svg", "Honolulu Kawhi'i": "https://g.espncdn.com/lm-static/fba/images/default_logos/3.svg", "Shai-K47": "https: // g.espncdn.com/lm-static/logo-packs/core/OldTimeMickeyAndFriends/Basketball_Mickey.svg"};
@@ -683,6 +833,91 @@
         }
 
         renderPlayerContributions();
+
+        // Top 3 Players by Week
+        let selectedWeek = topPlayersByWeek.weeks[topPlayersByWeek.weeks.length - 1];
+
+        function renderWeekSelector() {
+            const selector = document.getElementById('weekSelector');
+            topPlayersByWeek.weeks.forEach(week => {
+                const button = document.createElement('button');
+                button.className = 'week-button';
+                button.textContent = `Week ${week}`;
+                if (week === selectedWeek) {
+                    button.classList.add('active');
+                }
+                button.onclick = () => {
+                    selectedWeek = week;
+                    renderWeekSelector();
+                    renderTopPlayers();
+                };
+                selector.appendChild(button);
+            });
+        }
+
+        function renderTopPlayers() {
+            const display = document.getElementById('topPlayersDisplay');
+            display.innerHTML = '';
+
+            const players = topPlayersByWeek.top_players[selectedWeek];
+
+            players.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = `top-player-card rank-${index + 1}`;
+
+                // Rank badge
+                const badge = document.createElement('div');
+                badge.className = `rank-badge rank-${index + 1}`;
+                badge.textContent = index + 1;
+                card.appendChild(badge);
+
+                // Player photo
+                const imageUrl = getPlayerImageUrl(player.playerId);
+                if (imageUrl) {
+                    const img = document.createElement('img');
+                    img.className = 'top-player-photo';
+                    img.src = imageUrl;
+                    img.alt = player.name;
+
+                    img.onerror = function() {
+                        const fallback = document.createElement('div');
+                        fallback.className = 'top-player-photo-error';
+                        fallback.textContent = getInitials(player.name);
+                        card.replaceChild(fallback, img);
+                    };
+
+                    card.appendChild(img);
+                } else {
+                    const fallback = document.createElement('div');
+                    fallback.className = 'top-player-photo-error';
+                    fallback.textContent = getInitials(player.name);
+                    card.appendChild(fallback);
+                }
+
+                // Player name
+                const name = document.createElement('div');
+                name.className = 'top-player-name';
+                name.textContent = player.name;
+                card.appendChild(name);
+
+                // Player team
+                const team = document.createElement('div');
+                team.className = 'top-player-team';
+                team.textContent = player.team;
+                card.appendChild(team);
+
+                // Player points
+                const points = document.createElement('div');
+                points.className = 'top-player-points';
+                points.textContent = player.points.toFixed(1);
+                card.appendChild(points);
+
+                display.appendChild(card);
+            });
+        }
+
+        renderWeekSelector();
+        renderTopPlayers();
     </script>
 </body>
 </html>
