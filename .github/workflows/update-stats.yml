@@ -33,10 +33,6 @@ jobs:
         run: |
           python generate_stats.py
 
-      - name: Update index.html
-        run: |
-          cp output/league_stats.html index.html
-
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
