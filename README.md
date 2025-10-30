@@ -1,56 +1,247 @@
-## Getting Started
+# ESPN Fantasy Basketball Stats Generator
 
-We provide a sample app using HTML that you can deploy on App Platform. These steps will get this sample application running for you using App Platform.
+A Python application that generates a beautiful, static HTML dashboard with interactive charts for your ESPN Fantasy Basketball league. Perfect for sharing stats with your league members!
 
-**Note: Following these steps may result in charges for the use of DigitalOcean services.**
+## Features
 
-### Requirements
+The generated dashboard includes four interactive charts:
 
-* You need a DigitalOcean account. If you don't already have one, you can sign up at https://cloud.digitalocean.com/registrations/new.
+1. **Weekly Total Points** (Line Chart) - Track each team's scoring performance week-by-week
+2. **Standings Progression** (Step Chart) - Visualize how team rankings have changed throughout the season
+3. **Top Player Contributions** (Stacked Bar Chart) - See which players carried their teams each week
+4. **Win Margin Distribution** (Histogram) - Analyze how close your league's matchups have been
 
-## Deploying the App
+## Requirements
 
-Click this button to deploy the app to the DigitalOcean App Platform. If you are not logged in, you will be prompted to log in with your DigitalOcean account.
+- Python 3.7 or higher
+- ESPN Fantasy Basketball League (Points League)
 
-[![Deploy to DigitalOcean](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/digitalocean/sample-html/tree/main)
+## Installation
 
-Using this button disables the ability to automatically re-deploy your app when pushing to a branch or tag in your repository as you are using this repo directly.
+### 1. Clone or download this repository
 
-If you want to automatically re-deploy your app, [fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) the GitHub repository to your account so that you have a copy of it stored to the cloud. Click the **Fork** button in the GitHub repository and follow the on-screen instructions.
+```bash
+cd fantasy-bball-league-stats
+```
 
-After forking the repo, you should now be viewing this README in your own GitHub org (e.g. `https://github.com/<your-org>/sample-html`). To deploy the new repo, visit https://cloud.digitalocean.com/apps and click **Create App**. Then, click **GitHub**, select the repository you created and select the `main` branch. App Platform will inspect the code, automatically detect the kind of component to create, and use the correct buildpack to create and deploy a container.
+### 2. Create a virtual environment (recommended)
 
-After clicking the **Deploy to DigitalOcean** button or completing the instructions above to fork the repo, follow these steps:
+**On Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
 
-1. Configure the app such as specifying HTTP routes, environment variables or adding a database.
-1. Provide a name for your app and select which region you want to deploy your app to and click **Next**. The closest region to you should be selected by default. All App Platform apps are routed through a global CDN. So this will not affect your app performance, unless it needs to talk to external services.
-1. On the following screen, leave all the fields as they are and click **Next**.
-1. Confirm your **Plan** settings and how many containers you want to launch and click **Launch Basic/Pro App**.
-1. You should see a "Building..." progress indicator. You can click **View Logs** to see more details of the build.
-1. It can take a few minutes for the build to finish, but you can follow the progress in the **Deployments** tab.
-1. Once the build completes successfully, click the **Live App** link in the header and you should see your running application in a new tab, displaying the home page.
+**On macOS/Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-### Making Changes to Your App
+### 3. Install dependencies
 
-If you followed the steps to fork the repo and used your own copy when deploying the app, you can push changes to your fork and see App Platform automatically re-deploy the update to your app. During these automatic deployments, your application will never pause or stop serving request because App Platform offers zero-downtime deployments.
+```bash
+pip install -r requirements.txt
+```
 
-Here's an example code change you can make for this app:
+## Configuration
 
-1. Edit code within the repository
-1. Commit the change to the `main` branch. Normally it's a better practice to create a new branch for your change and then merge that branch to `main` after review, but for this demo you can commit to the `main` branch directly.
-1. Visit https://cloud.digitalocean.com/apps and navigate to your sample app.
-1. You should see a "Building..." progress indicator, just like when you first created the app.
-1. Once the build completes successfully, click the **Live App** link in the header and you should see your updated application running. You may need to force refresh the page in your browser (e.g. using **Shift+Reload**).
+### 1. Edit `settings.py`
 
-### Learn More
+Open `settings.py` and configure your league details:
 
-You can learn more about the App Platform and how to manage and update your application at https://www.digitalocean.com/docs/app-platform/.
+```python
+LEAGUE_ID = 123456789  # Your ESPN league ID
+YEAR = 2025            # Season year
+ESPN_S2 = None         # Required for private leagues
+SWID = None            # Required for private leagues
+```
 
-## Deleting the App
+### 2. Finding Your League ID
 
-When you no longer need this sample application running live, you can delete it by following these steps:
-1. Visit the Apps control panel at https://cloud.digitalocean.com/apps.
-2. Navigate to the sample app.
-3. In the **Settings** tab, click **Destroy**.
+Your league ID is in the ESPN Fantasy Basketball URL:
+```
+https://fantasy.espn.com/basketball/league?leagueId=YOUR_LEAGUE_ID
+```
 
-**Note: If you do not delete your app, charges for using DigitalOcean services will continue to accrue.**
+### 3. Getting ESPN Authentication Cookies (Private Leagues Only)
+
+If your league is private, you'll need to provide authentication cookies:
+
+1. Log in to your ESPN Fantasy Basketball league in a web browser
+2. Open Developer Tools (F12 or Right-click → Inspect)
+3. Go to the **Application** tab (Chrome) or **Storage** tab (Firefox)
+4. Navigate to **Cookies** → `espn.com`
+5. Find and copy the values for:
+   - `espn_s2` - A long string
+   - `SWID` - Format: `{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}`
+
+6. Update `settings.py`:
+```python
+ESPN_S2 = "your_espn_s2_value_here"
+SWID = "{your-swid-value-here}"
+```
+
+**Note:** For public leagues, you can leave these as `None`.
+
+## Usage
+
+### Generate the Stats Dashboard
+
+With your virtual environment activated, run:
+
+```bash
+python generate_stats.py
+```
+
+You'll see output like:
+```
+============================================================
+ESPN Fantasy Basketball Stats Generator
+============================================================
+Connecting to ESPN league 123456789 for year 2025...
+✓ Connected successfully to: My Awesome League
+  Teams: 10
+  Current Week: 12
+
+Fetching weekly scores...
+  Processing week 1...
+  Processing week 2...
+  ...
+✓ Fetched 12 weeks of data for 10 teams
+
+Calculating standings progression...
+  ...
+✓ Calculated standings for 12 weeks
+
+Fetching top player contributions...
+  ...
+✓ Fetched player contributions for 12 weeks
+
+Calculating win margins...
+✓ Calculated 60 matchup margins
+
+Generating HTML...
+
+============================================================
+✓ SUCCESS!
+============================================================
+HTML file generated: output/league_stats.html
+Open this file in your web browser to view the stats dashboard.
+============================================================
+```
+
+### View the Dashboard
+
+Open the generated file in your web browser:
+
+**On Windows:**
+```bash
+start output\league_stats.html
+```
+
+**On macOS:**
+```bash
+open output/league_stats.html
+```
+
+**On Linux:**
+```bash
+xdg-open output/league_stats.html
+```
+
+Or simply navigate to the `output` folder and double-click `league_stats.html`.
+
+## Deployment
+
+The generated HTML file is completely self-contained (except for Chart.js loaded from CDN). You can:
+
+1. **Upload to any web hosting** - Just upload the single HTML file
+2. **Share via file sharing** - Send the HTML file directly to league members
+3. **Host on GitHub Pages** - Commit the output file to a GitHub Pages repository
+4. **Deploy to Netlify/Vercel** - Drag and drop the HTML file
+
+## Customization
+
+### Adjust Settings
+
+In `settings.py`, you can modify:
+
+```python
+TOP_PLAYERS_PER_TEAM = 5  # Number of top scorers shown in the stacked bar chart
+OUTPUT_DIR = "output"      # Where to save the HTML file
+OUTPUT_FILENAME = "league_stats.html"  # Name of the output file
+```
+
+### Styling
+
+The dashboard uses a dark theme by default. To customize colors, edit the CSS in `generate_stats.py` within the `generate_html()` function.
+
+### Chart Colors
+
+Team colors are automatically assigned from a predefined palette. To customize, modify the `colors` list in the `generate_html()` function.
+
+## Troubleshooting
+
+### Authentication Issues
+
+**Error:** `Exception: Unable to access league data`
+
+- **Solution:** Verify your `LEAGUE_ID` is correct
+- For private leagues, ensure your `ESPN_S2` and `SWID` cookies are up-to-date (they expire periodically)
+
+### No Data Available
+
+**Error:** No weeks or matchups found
+
+- **Solution:** Ensure the season has started and games have been played
+- Verify the `YEAR` in settings matches the season you want to analyze
+
+### Import Errors
+
+**Error:** `ModuleNotFoundError: No module named 'espn_api'`
+
+- **Solution:** Ensure you've activated your virtual environment and installed requirements:
+```bash
+# Activate venv first
+pip install -r requirements.txt
+```
+
+## Project Structure
+
+```
+fantasy-bball-league-stats/
+├── generate_stats.py      # Main script - fetches data and generates HTML
+├── settings.py            # Configuration file for league credentials
+├── requirements.txt       # Python dependencies
+├── CHECKLIST.md          # Implementation checklist
+├── README.md             # This file
+└── output/
+    └── league_stats.html # Generated dashboard (after running script)
+```
+
+## Technical Details
+
+- **Data Source:** ESPN Fantasy API via [espn-api](https://github.com/cwendt94/espn-api) library
+- **Charts:** [Chart.js](https://www.chartjs.org/) v4.4.0
+- **Output:** Single self-contained HTML file with embedded CSS and JavaScript
+
+## License
+
+This project uses the espn-api library, which is licensed under MIT.
+
+## Support
+
+For issues with:
+- **ESPN API:** Visit [cwendt94/espn-api](https://github.com/cwendt94/espn-api)
+- **This project:** Check CHECKLIST.md for implementation details
+
+## Credits
+
+Built with:
+- [espn-api](https://github.com/cwendt94/espn-api) by cwendt94
+- [Chart.js](https://www.chartjs.org/) for interactive charts
+
+---
+
+**Enjoy your stats dashboard!** 🏀📊
