@@ -24,7 +24,7 @@ SWID = None
 
 # Output settings
 OUTPUT_DIR = "output"
-OUTPUT_FILENAME = "league_stats.html"
+OUTPUT_FILENAME = "index.html"
 
 # Chart settings
 TOP_PLAYERS_PER_TEAM = 5  # Number of top players to show in stacked bar chart
