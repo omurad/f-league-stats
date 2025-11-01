@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The F-League Stats</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f1419;
+            color: #e4e6eb;
+            padding: 20px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #1e2732 0%, #2d3748 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #a0aec0;
+            margin-bottom: 15px;
+        }
+
+        .meta {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                margin-bottom: 20px;
+                padding: 20px 15px;
+                border-radius: 8px;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .subtitle {
+                font-size: 0.95rem;
+            }
+
+            .meta {
+                font-size: 0.8rem;
+            }
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: #1a202c;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2d3748;
+        }
+
+        .chart-container h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #fff;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 10px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .player-contributions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 10px 0;
+        }
+
+        .team-card {
+            background: #2d3748;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #4a5568;
+        }
+
+        .team-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #fff;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .player-contributions-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .team-card {
+                padding: 12px;
+            }
+
+            .team-card h3 {
+                font-size: 1rem;
+                margin-bottom: 12px;
+            }
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            background: #1a202c;
+            border-radius: 6px;
+            padding: 8px;
+            transition: transform 0.2s;
+        }
+
+        .player-item:hover {
+            transform: translateX(5px);
+            background: #2d3748;
+        }
+
+        .player-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4299e1;
+            margin-right: 12px;
+            background: #2d3748;
+        }
+
+        .player-photo-error {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1.2rem;
+            border: 2px solid #4299e1;
+        }
+
+        .player-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #e4e6eb;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-points {
+            color: #4299e1;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .points-bar {
+            height: 4px;
+            background: #4299e1;
+            border-radius: 2px;
+            margin-top: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .week-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            justify-content: center;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 5px 0;
+        }
+
+        .week-button {
+            padding: 8px 16px;
+            background: #2d3748;
+            border: 2px solid #4a5568;
+            border-radius: 6px;
+            color: #e4e6eb;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            white-space: nowrap;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .week-button:hover {
+            background: #4a5568;
+            border-color: #4299e1;
+        }
+
+        .week-button.active {
+            background: #4299e1;
+            border-color: #4299e1;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .week-selector {
+                gap: 6px;
+                justify-content: flex-start;
+            }
+
+            .week-button {
+                padding: 10px 14px;
+                font-size: 0.9rem;
+                min-height: 48px;
+                min-width: 48px;
+            }
+        }
+
+        .top-players-display {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 20px 0;
+        }
+
+        .top-player-card {
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 20px;
+            width: 280px;
+            text-align: center;
+            border: 2px solid #4a5568;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .top-player-card:hover {
+            transform: translateY(-4px);
+            border-color: #4299e1;
+        }
+
+        @media (max-width: 768px) {
+            .top-players-display {
+                gap: 15px;
+                padding: 15px 0;
+            }
+
+            .top-player-card {
+                width: 100%;
+                max-width: 320px;
+                padding: 15px;
+            }
+
+            .top-player-card:hover {
+                transform: none;
+            }
+        }
+
+        .top-player-card.rank-1 {
+            border-color: #ffd700;
+        }
+
+        .top-player-card.rank-2 {
+            border-color: #c0c0c0;
+        }
+
+        .top-player-card.rank-3 {
+            border-color: #cd7f32;
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            border: 3px solid #1a202c;
+        }
+
+        .rank-badge.rank-1 {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+        }
+
+        .rank-badge.rank-2 {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+            color: #333;
+        }
+
+        .rank-badge.rank-3 {
+            background: linear-gradient(135deg, #cd7f32 0%, #e6a157 100%);
+            color: white;
+        }
+
+        .top-player-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #4299e1;
+            margin: 15px auto 15px;
+            background: #2d3748;
+        }
+
+        .top-player-photo-error {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 15px auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 2.5rem;
+            border: 4px solid #4299e1;
+        }
+
+        .top-player-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .top-player-team {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-bottom: 12px;
+        }
+
+        .top-player-points {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4299e1;
+        }
+
+        @media (max-width: 768px) {
+            .top-player-photo,
+            .top-player-photo-error {
+                width: 100px;
+                height: 100px;
+                margin: 10px auto 10px;
+                border-width: 3px;
+            }
+
+            .top-player-photo-error {
+                font-size: 2rem;
+            }
+
+            .top-player-name {
+                font-size: 1.1rem;
+            }
+
+            .top-player-team {
+                font-size: 0.85rem;
+            }
+
+            .top-player-points {
+                font-size: 1.75rem;
+            }
+        }
+
+        .top-team-display {
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .top-team-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 30px 40px;
+            min-width: 320px;
+            text-align: center;
+            border: 3px solid #ffd700;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .top-team-card:hover {
+            transform: scale(1.05);
+        }
+
+        .top-team-trophy {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .top-team-logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            border: 4px solid #ffd700;
+            background: white;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-team-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .top-team-points {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .top-team-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .top-team-card {
+                padding: 25px 20px;
+                min-width: auto;
+                width: 100%;
+                max-width: 350px;
+                margin: 0 auto;
+            }
+
+            .top-team-card:hover {
+                transform: none;
+            }
+
+            .top-team-trophy {
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }
+
+            .top-team-logo {
+                width: 80px;
+                height: 80px;
+                margin: 0 auto 15px;
+                border-width: 3px;
+                padding: 8px;
+            }
+
+            .top-team-name {
+                font-size: 1.4rem;
+                margin-bottom: 8px;
+            }
+
+            .top-team-points {
+                font-size: 2rem;
+            }
+
+            .top-team-label {
+                font-size: 0.8rem;
+            }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .chart-container {
+                padding: 15px;
+            }
+
+            .chart-container h2 {
+                font-size: 1.25rem;
+                margin-bottom: 15px;
+            }
+
+            .chart-wrapper {
+                height: 280px;
+            }
+
+            .player-item {
+                padding: 6px;
+                margin-bottom: 10px;
+            }
+
+            .player-photo,
+            .player-photo-error {
+                width: 40px;
+                height: 40px;
+                margin-right: 10px;
+            }
+
+            .player-photo-error {
+                font-size: 1rem;
+            }
+
+            .player-name {
+                font-size: 0.9rem;
+            }
+
+            .player-points {
+                font-size: 1rem;
+            }
+
+            .rank-badge {
+                width: 28px;
+                height: 28px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .chart-container {
+                padding: 12px;
+                border-radius: 8px;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .top-player-card {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>The F-League</h1>
+            <p class="subtitle">Fantasy Basketball Stats Dashboard - 2023-2024 Season</p>
+            <p class="meta">Last Updated: November 01, 2025 at 03:54 PM -0700</p>
+        </header>
+
+        <div class="charts-grid">
+            <div class="chart-container full-width">
+                <h2>👑 Top Team of the Week</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Highest scoring team each week based on total fantasy points.
+                </p>
+                <div class="week-selector" id="topTeamWeekSelector"></div>
+                <div class="top-team-display" id="topTeamDisplay"></div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>🎯 All-Play Standings</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Shows how each team would rank if they played against every other team each week,
+                    removing the impact of schedule luck.
+                </p>
+                <div class="chart-wrapper">
+                    <canvas id="allPlayStandingsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>🏆 Top 3 Players of the Week</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Best individual player performances each week across all teams.
+                </p>
+                <div class="week-selector" id="weekSelector"></div>
+                <div class="top-players-display" id="topPlayersDisplay"></div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>🔥 Top 3 Player Performances of the Season</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Highest scoring individual performances in a single week this season.
+                </p>
+                <div class="top-players-display" id="topPerformancesDisplay"></div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>📈 All-Play Win Percentage Progression</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Track each team's all-play win percentage over time, showing performance trends.
+                </p>
+                <div class="chart-wrapper">
+                    <canvas id="allPlayProgressionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>📈 Weekly Total Points</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Track each team's total points scored per week throughout the season.
+                </p>
+                <div class="chart-wrapper">
+                    <canvas id="weeklyPointsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>📊 Cumulative Total Points</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Running total of all points scored by each team over time.
+                </p>
+                <div class="chart-wrapper">
+                    <canvas id="cumulativePointsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h2>📊 Standings Progression</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Track how team rankings change week by week based on actual head-to-head results.
+                </p>
+                <div class="chart-wrapper">
+                    <canvas id="standingsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h2>📉 Win Margin Distribution</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Distribution of point differences in matchups showing competitiveness of games.
+                </p>
+                <div class="chart-wrapper">
+                    <canvas id="marginChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container full-width">
+                <h2>⭐ Top Player Contributions by Team (Week 24)</h2>
+                <p style="color: #a0aec0; margin-bottom: 15px; font-size: 0.95rem;">
+                    Highest scoring players on each team for the most recent week.
+                </p>
+                <div class="player-contributions-grid" id="playerContributionsGrid"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Generated with ESPN API | Data accurate as of November 01, 2025 at 03:54 PM -0700</p>
+        </footer>
+    </div>
+
+    <script>
+        // Embedded data
+        const weeklyScoresData = {"weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], "teams": {"GALL": [1294.0, 1547.0, 1455.0, 1694.0, 1414.0, 1466.0, 942.0, 1951.0, 1558.0, 1392.0, 1538.0, 1360.0, 1632.0, 1366.0, 1750.0, 1485.0, 2156.0, 1717.0, 1868.0, 1501.0, 1246.0, 1558.0, 1780.0, 1314.0], "SAM": [1079.0, 1425.0, 1020.0, 1380.0, 1418.0, 1199.0, 716.0, 1418.0, 1675.0, 1613.0, 1679.0, 1604.0, 1599.0, 1777.0, 1831.0, 1682.0, 2094.0, 1667.0, 1684.0, 1828.0, 1333.0, 1524.0, 1758.0, 1499.0], "NLH": [940.0, 1621.0, 1260.0, 1400.0, 1423.0, 1693.0, 933.0, 1664.0, 1803.0, 1576.0, 1820.0, 1493.0, 1086.0, 1362.0, 1689.0, 1204.0, 1729.0, 1314.0, 1391.0, 1722.0, 1545.0, 1843.0, 1790.0, 1569.0], "BEER": [968.0, 1159.0, 1076.0, 1413.0, 1637.0, 1281.0, 837.0, 1634.0, 1408.0, 1032.0, 1334.0, 1112.0, 1205.0, 1424.0, 1585.0, 1254.0, 2216.0, 1083.0, 1311.0, 1212.0, 1286.0, 1423.0, 1230.0, 900.0], "SHOW": [1399.0, 1372.0, 1694.0, 1423.0, 1389.0, 1106.0, 893.0, 1567.0, 1588.0, 1752.0, 1688.0, 1616.0, 1596.0, 1329.0, 1310.0, 1303.0, 2122.0, 1551.0, 1595.0, 1370.0, 1416.0, 1177.0, 1415.0, 1045.0], "MIDD": [1181.0, 1553.0, 1327.0, 1326.0, 1594.0, 1604.0, 810.0, 1819.0, 1310.0, 1530.0, 1611.0, 1155.0, 1350.0, 1716.0, 1904.0, 1900.0, 1924.0, 2086.0, 1793.0, 1744.0, 1451.0, 1379.0, 1772.0, 1278.0], "TyPc": [1131.0, 1579.0, 1596.0, 1612.0, 1626.0, 1707.0, 963.0, 1647.0, 1450.0, 1910.0, 1622.0, 1742.0, 1548.0, 1459.0, 1250.0, 1258.0, 1818.0, 1217.0, 1580.0, 1003.0, 870.0, 1204.0, 836.0, 716.0], "BALL": [1115.0, 1583.0, 1421.0, 1515.0, 1495.0, 1520.0, 829.0, 1516.0, 1267.0, 1684.0, 1242.0, 1849.0, 1379.0, 1689.0, 1663.0, 1502.0, 1790.0, 1274.0, 1494.0, 1204.0, 1146.0, 1354.0, 990.0, 750.0], "SOSA": [1110.0, 1326.0, 1297.0, 1389.0, 1413.0, 1345.0, 849.0, 1546.0, 1415.0, 1270.0, 1258.0, 1367.0, 1267.0, 1406.0, 1487.0, 1424.0, 1321.0, 1082.0, 1007.0, 728.0, 903.0, 1006.0, 944.0, 863.0], "DD ": [1172.0, 1730.0, 1251.0, 1402.0, 1557.0, 1109.0, 908.0, 1756.0, 1542.0, 1453.0, 1408.0, 1275.0, 1598.0, 1611.0, 1833.0, 1673.0, 1936.0, 1513.0, 1593.0, 974.0, 1396.0, 749.0, 1271.0, 1068.0]}};
+        const cumulativePointsData = {"weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], "teams": {"GALL": [1294.0, 2841.0, 4296.0, 5990.0, 7404.0, 8870.0, 9812.0, 11763.0, 13321.0, 14713.0, 16251.0, 17611.0, 19243.0, 20609.0, 22359.0, 23844.0, 26000.0, 27717.0, 29585.0, 31086.0, 32332.0, 33890.0, 35670.0, 36984.0], "SAM": [1079.0, 2504.0, 3524.0, 4904.0, 6322.0, 7521.0, 8237.0, 9655.0, 11330.0, 12943.0, 14622.0, 16226.0, 17825.0, 19602.0, 21433.0, 23115.0, 25209.0, 26876.0, 28560.0, 30388.0, 31721.0, 33245.0, 35003.0, 36502.0], "NLH": [940.0, 2561.0, 3821.0, 5221.0, 6644.0, 8337.0, 9270.0, 10934.0, 12737.0, 14313.0, 16133.0, 17626.0, 18712.0, 20074.0, 21763.0, 22967.0, 24696.0, 26010.0, 27401.0, 29123.0, 30668.0, 32511.0, 34301.0, 35870.0], "BEER": [968.0, 2127.0, 3203.0, 4616.0, 6253.0, 7534.0, 8371.0, 10005.0, 11413.0, 12445.0, 13779.0, 14891.0, 16096.0, 17520.0, 19105.0, 20359.0, 22575.0, 23658.0, 24969.0, 26181.0, 27467.0, 28890.0, 30120.0, 31020.0], "SHOW": [1399.0, 2771.0, 4465.0, 5888.0, 7277.0, 8383.0, 9276.0, 10843.0, 12431.0, 14183.0, 15871.0, 17487.0, 19083.0, 20412.0, 21722.0, 23025.0, 25147.0, 26698.0, 28293.0, 29663.0, 31079.0, 32256.0, 33671.0, 34716.0], "MIDD": [1181.0, 2734.0, 4061.0, 5387.0, 6981.0, 8585.0, 9395.0, 11214.0, 12524.0, 14054.0, 15665.0, 16820.0, 18170.0, 19886.0, 21790.0, 23690.0, 25614.0, 27700.0, 29493.0, 31237.0, 32688.0, 34067.0, 35839.0, 37117.0], "TyPc": [1131.0, 2710.0, 4306.0, 5918.0, 7544.0, 9251.0, 10214.0, 11861.0, 13311.0, 15221.0, 16843.0, 18585.0, 20133.0, 21592.0, 22842.0, 24100.0, 25918.0, 27135.0, 28715.0, 29718.0, 30588.0, 31792.0, 32628.0, 33344.0], "BALL": [1115.0, 2698.0, 4119.0, 5634.0, 7129.0, 8649.0, 9478.0, 10994.0, 12261.0, 13945.0, 15187.0, 17036.0, 18415.0, 20104.0, 21767.0, 23269.0, 25059.0, 26333.0, 27827.0, 29031.0, 30177.0, 31531.0, 32521.0, 33271.0], "SOSA": [1110.0, 2436.0, 3733.0, 5122.0, 6535.0, 7880.0, 8729.0, 10275.0, 11690.0, 12960.0, 14218.0, 15585.0, 16852.0, 18258.0, 19745.0, 21169.0, 22490.0, 23572.0, 24579.0, 25307.0, 26210.0, 27216.0, 28160.0, 29023.0], "DD ": [1172.0, 2902.0, 4153.0, 5555.0, 7112.0, 8221.0, 9129.0, 10885.0, 12427.0, 13880.0, 15288.0, 16563.0, 18161.0, 19772.0, 21605.0, 23278.0, 25214.0, 26727.0, 28320.0, 29294.0, 30690.0, 31439.0, 32710.0, 33778.0]}};
+        const standingsData = {"weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], "teams": {"GALL": [6, 8, 7, 5, 3, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 4, 5, 5, 5], "SAM": [7, 9, 9, 10, 10, 10, 10, 10, 10, 10, 9, 10, 8, 8, 7, 7, 5, 4, 4, 4, 3, 3, 3, 3], "NLH": [8, 4, 8, 8, 9, 8, 6, 5, 4, 4, 2, 2, 3, 4, 4, 5, 6, 7, 5, 5, 5, 4, 4, 4], "BEER": [9, 10, 10, 9, 7, 6, 7, 8, 8, 8, 7, 8, 9, 9, 8, 8, 8, 8, 8, 8, 7, 6, 6, 6], "SHOW": [1, 5, 2, 1, 4, 7, 8, 6, 6, 6, 6, 6, 6, 6, 9, 9, 9, 9, 9, 9, 8, 9, 7, 7], "MIDD": [2, 1, 1, 2, 1, 2, 4, 3, 3, 2, 3, 5, 4, 3, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1], "TyPc": [3, 2, 3, 6, 5, 3, 2, 4, 5, 5, 4, 3, 5, 5, 5, 4, 4, 5, 6, 7, 9, 7, 8, 8], "BALL": [10, 6, 4, 3, 6, 4, 5, 7, 7, 7, 8, 7, 7, 7, 6, 6, 7, 6, 7, 6, 6, 8, 9, 9], "SOSA": [4, 7, 5, 7, 8, 9, 9, 9, 9, 9, 10, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10], "DD ": [5, 3, 6, 4, 2, 5, 3, 2, 2, 3, 5, 4, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2]}};
+        const playerContributions = {"weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], "contributions": {"1": {"TyPc": [{"name": "Tyrese Haliburton", "points": 110.0, "playerId": 4396993}, {"name": "Trae Young", "points": 102.0, "playerId": 4277905}, {"name": "Jusuf Nurkic", "points": 92.0, "playerId": 3102530}, {"name": "Bam Adebayo", "points": 91.0, "playerId": 4066261}, {"name": "Deandre Ayton", "points": 91.0, "playerId": 4278129}], "SAM": [{"name": "Domantas Sabonis", "points": 146.0, "playerId": 3155942}, {"name": "Evan Mobley", "points": 121.0, "playerId": 4432158}, {"name": "Jalen Duren", "points": 110.0, "playerId": 4433621}, {"name": "Jamal Murray", "points": 109.0, "playerId": 3936299}, {"name": "Tyler Herro", "points": 105.0, "playerId": 4395725}], "SHOW": [{"name": "Anthony Davis", "points": 172.0, "playerId": 6583}, {"name": "Tyrese Maxey", "points": 167.0, "playerId": 4431678}, {"name": "Alperen Sengun", "points": 123.0, "playerId": 4871144}, {"name": "Marcus Smart", "points": 111.0, "playerId": 2990992}, {"name": "Keegan Murray", "points": 110.0, "playerId": 4594327}], "GALL": [{"name": "Joel Embiid", "points": 195.0, "playerId": 3059318}, {"name": "Cade Cunningham", "points": 109.0, "playerId": 4432166}, {"name": "Aaron Gordon", "points": 107.0, "playerId": 3064290}, {"name": "Kristaps Porzingis", "points": 100.0, "playerId": 3102531}, {"name": "Jalen Brunson", "points": 99.0, "playerId": 3934672}], "MIDD": [{"name": "Luka Doncic", "points": 154.0, "playerId": 3945274}, {"name": "Donovan Mitchell", "points": 145.0, "playerId": 3908809}, {"name": "Kawhi Leonard", "points": 131.0, "playerId": 6450}, {"name": "Russell Westbrook", "points": 98.0, "playerId": 3468}, {"name": "Ivica Zubac", "points": 90.0, "playerId": 4017837}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 163.0, "playerId": 4278073}, {"name": "Paul George", "points": 149.0, "playerId": 4251}, {"name": "Lauri Markkanen", "points": 126.0, "playerId": 4066336}, {"name": "Chet Holmgren", "points": 114.0, "playerId": 4433255}, {"name": "Jaren Jackson Jr.", "points": 110.0, "playerId": 4277961}], "NLH": [{"name": "Nikola Jokic", "points": 164.0, "playerId": 3112335}, {"name": "De'Aaron Fox", "points": 154.0, "playerId": 4066259}, {"name": "Desmond Bane", "points": 118.0, "playerId": 4066320}, {"name": "Shaedon Sharpe", "points": 88.0, "playerId": 4914336}, {"name": "Devin Vassell", "points": 88.0, "playerId": 4395630}], "SOSA": [{"name": "Stephen Curry", "points": 150.0, "playerId": 3975}, {"name": "LeBron James", "points": 143.0, "playerId": 1966}, {"name": "DeMar DeRozan", "points": 130.0, "playerId": 3978}, {"name": "Harrison Barnes", "points": 90.0, "playerId": 6578}, {"name": "John Collins", "points": 90.0, "playerId": 3908845}], "BEER": [{"name": "Kevin Durant", "points": 124.0, "playerId": 3202}, {"name": "Chris Paul", "points": 103.0, "playerId": 2779}, {"name": "Mitchell Robinson", "points": 98.0, "playerId": 4351852}, {"name": "Fred VanVleet", "points": 92.0, "playerId": 2991230}, {"name": "Clint Capela", "points": 90.0, "playerId": 3102529}], "DD ": [{"name": "Scottie Barnes", "points": 156.0, "playerId": 4433134}, {"name": "Tobias Harris", "points": 112.0, "playerId": 6440}, {"name": "Jayson Tatum", "points": 100.0, "playerId": 4065648}, {"name": "CJ McCollum", "points": 94.0, "playerId": 2490149}, {"name": "Malcolm Brogdon", "points": 86.0, "playerId": 2566769}]}, "2": {"GALL": [{"name": "Gordon Hayward", "points": 159.0, "playerId": 4249}, {"name": "Aaron Gordon", "points": 126.0, "playerId": 3064290}, {"name": "P.J. Washington", "points": 124.0, "playerId": 4278078}, {"name": "Jrue Holiday", "points": 118.0, "playerId": 3995}, {"name": "Cade Cunningham", "points": 112.0, "playerId": 4432166}], "BALL": [{"name": "Jaren Jackson Jr.", "points": 185.0, "playerId": 4277961}, {"name": "Lauri Markkanen", "points": 158.0, "playerId": 4066336}, {"name": "LaMelo Ball", "points": 149.0, "playerId": 4432816}, {"name": "Chet Holmgren", "points": 143.0, "playerId": 4433255}, {"name": "Franz Wagner", "points": 139.0, "playerId": 4566434}], "SOSA": [{"name": "Stephen Curry", "points": 191.0, "playerId": 3975}, {"name": "LeBron James", "points": 156.0, "playerId": 1966}, {"name": "Cam Thomas", "points": 129.0, "playerId": 4432174}, {"name": "DeMar DeRozan", "points": 120.0, "playerId": 3978}, {"name": "Jonas Valanciunas", "points": 114.0, "playerId": 6477}], "TyPc": [{"name": "Tyrese Haliburton", "points": 169.0, "playerId": 4396993}, {"name": "Deandre Ayton", "points": 169.0, "playerId": 4278129}, {"name": "Dennis Schroder", "points": 165.0, "playerId": 3032979}, {"name": "Trae Young", "points": 130.0, "playerId": 4277905}, {"name": "Jusuf Nurkic", "points": 125.0, "playerId": 3102530}], "DD ": [{"name": "Scottie Barnes", "points": 211.0, "playerId": 4433134}, {"name": "CJ McCollum", "points": 172.0, "playerId": 2490149}, {"name": "Paolo Banchero", "points": 158.0, "playerId": 4432573}, {"name": "Nikola Vucevic", "points": 157.0, "playerId": 6478}, {"name": "Malcolm Brogdon", "points": 153.0, "playerId": 2566769}], "SAM": [{"name": "Dejounte Murray", "points": 158.0, "playerId": 3907497}, {"name": "Evan Mobley", "points": 157.0, "playerId": 4432158}, {"name": "Ausar Thompson", "points": 155.0, "playerId": 4684742}, {"name": "Tyler Herro", "points": 153.0, "playerId": 4395725}, {"name": "Zach LaVine", "points": 121.0, "playerId": 3064440}], "NLH": [{"name": "Nikola Jokic", "points": 254.0, "playerId": 3112335}, {"name": "Desmond Bane", "points": 209.0, "playerId": 4066320}, {"name": "Shaedon Sharpe", "points": 151.0, "playerId": 4914336}, {"name": "Mark Williams", "points": 147.0, "playerId": 4701232}, {"name": "Jaylen Brown", "points": 119.0, "playerId": 3917376}], "SHOW": [{"name": "Anthony Davis", "points": 209.0, "playerId": 6583}, {"name": "Draymond Green", "points": 150.0, "playerId": 6589}, {"name": "Myles Turner", "points": 138.0, "playerId": 3133628}, {"name": "Anthony Edwards", "points": 131.0, "playerId": 4594268}, {"name": "Marcus Smart", "points": 115.0, "playerId": 2990992}], "BEER": [{"name": "Kevin Durant", "points": 149.0, "playerId": 3202}, {"name": "Karl-Anthony Towns", "points": 112.0, "playerId": 3136195}, {"name": "Chris Paul", "points": 100.0, "playerId": 2779}, {"name": "Fred VanVleet", "points": 98.0, "playerId": 2991230}, {"name": "Giannis Antetokounmpo", "points": 94.0, "playerId": 3032977}], "MIDD": [{"name": "Donovan Mitchell", "points": 210.0, "playerId": 3908809}, {"name": "Luka Doncic", "points": 203.0, "playerId": 3945274}, {"name": "Victor Wembanyama", "points": 157.0, "playerId": 5104157}, {"name": "Eric Gordon", "points": 133.0, "playerId": 3431}, {"name": "Michael Porter Jr.", "points": 126.0, "playerId": 4278104}]}, "3": {"SOSA": [{"name": "Stephen Curry", "points": 156.0, "playerId": 3975}, {"name": "DeMar DeRozan", "points": 141.0, "playerId": 3978}, {"name": "LeBron James", "points": 130.0, "playerId": 1966}, {"name": "Jonas Valanciunas", "points": 117.0, "playerId": 6477}, {"name": "Lonnie Walker IV", "points": 111.0, "playerId": 4277890}], "DD ": [{"name": "Jayson Tatum", "points": 178.0, "playerId": 4065648}, {"name": "Mikal Bridges", "points": 138.0, "playerId": 3147657}, {"name": "Nikola Vucevic", "points": 132.0, "playerId": 6478}, {"name": "Tobias Harris", "points": 126.0, "playerId": 6440}, {"name": "Keldon Johnson", "points": 100.0, "playerId": 4395723}], "GALL": [{"name": "Joel Embiid", "points": 249.0, "playerId": 3059318}, {"name": "Kyle Kuzma", "points": 143.0, "playerId": 3134907}, {"name": "Jrue Holiday", "points": 129.0, "playerId": 3995}, {"name": "Cade Cunningham", "points": 120.0, "playerId": 4432166}, {"name": "Aaron Gordon", "points": 118.0, "playerId": 3064290}], "NLH": [{"name": "Nikola Jokic", "points": 230.0, "playerId": 3112335}, {"name": "Jaylen Brown", "points": 136.0, "playerId": 3917376}, {"name": "Desmond Bane", "points": 134.0, "playerId": 4066320}, {"name": "Jeremy Sochan", "points": 106.0, "playerId": 4610139}, {"name": "Mark Williams", "points": 102.0, "playerId": 4701232}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 255.0, "playerId": 4278073}, {"name": "LaMelo Ball", "points": 163.0, "playerId": 4432816}, {"name": "Chet Holmgren", "points": 147.0, "playerId": 4433255}, {"name": "Lauri Markkanen", "points": 141.0, "playerId": 4066336}, {"name": "Paul George", "points": 112.0, "playerId": 4251}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 176.0, "playerId": 3032977}, {"name": "Kevin Durant", "points": 150.0, "playerId": 3202}, {"name": "Chris Paul", "points": 106.0, "playerId": 2779}, {"name": "Fred VanVleet", "points": 103.0, "playerId": 2991230}, {"name": "Jordan Poole", "points": 87.0, "playerId": 4277956}], "TyPc": [{"name": "Bam Adebayo", "points": 241.0, "playerId": 4066261}, {"name": "Tyrese Haliburton", "points": 238.0, "playerId": 4396993}, {"name": "Rudy Gobert", "points": 131.0, "playerId": 3032976}, {"name": "Jalen Williams", "points": 125.0, "playerId": 4593803}, {"name": "Julius Randle", "points": 119.0, "playerId": 3064514}], "SHOW": [{"name": "Tyrese Maxey", "points": 273.0, "playerId": 4431678}, {"name": "Anthony Edwards", "points": 217.0, "playerId": 4594268}, {"name": "Kyrie Irving", "points": 198.0, "playerId": 6442}, {"name": "Alperen Sengun", "points": 180.0, "playerId": 4871144}, {"name": "Myles Turner", "points": 159.0, "playerId": 3133628}], "SAM": [{"name": "Ausar Thompson", "points": 138.0, "playerId": 4684742}, {"name": "Domantas Sabonis", "points": 131.0, "playerId": 3155942}, {"name": "Dejounte Murray", "points": 122.0, "playerId": 3907497}, {"name": "Daniel Gafford", "points": 117.0, "playerId": 4278049}, {"name": "Zach Collins", "points": 110.0, "playerId": 4066650}], "MIDD": [{"name": "Luka Doncic", "points": 249.0, "playerId": 3945274}, {"name": "Victor Wembanyama", "points": 142.0, "playerId": 5104157}, {"name": "Kawhi Leonard", "points": 136.0, "playerId": 6450}, {"name": "Russell Westbrook", "points": 115.0, "playerId": 3468}, {"name": "Michael Porter Jr.", "points": 115.0, "playerId": 4278104}]}, "4": {"NLH": [{"name": "De'Aaron Fox", "points": 239.0, "playerId": 4066259}, {"name": "Nikola Jokic", "points": 180.0, "playerId": 3112335}, {"name": "Pascal Siakam", "points": 174.0, "playerId": 3149673}, {"name": "Desmond Bane", "points": 117.0, "playerId": 4066320}, {"name": "Jaylen Brown", "points": 111.0, "playerId": 3917376}], "BEER": [{"name": "Kevin Durant", "points": 209.0, "playerId": 3202}, {"name": "Giannis Antetokounmpo", "points": 164.0, "playerId": 3032977}, {"name": "Jarrett Allen", "points": 117.0, "playerId": 4066328}, {"name": "Austin Reaves", "points": 112.0, "playerId": 4066457}, {"name": "Karl-Anthony Towns", "points": 108.0, "playerId": 3136195}], "SHOW": [{"name": "Anthony Davis", "points": 185.0, "playerId": 6583}, {"name": "Tyrese Maxey", "points": 151.0, "playerId": 4431678}, {"name": "Jimmy Butler", "points": 147.0, "playerId": 6430}, {"name": "Keegan Murray", "points": 119.0, "playerId": 4594327}, {"name": "Kyrie Irving", "points": 116.0, "playerId": 6442}], "SOSA": [{"name": "LeBron James", "points": 254.0, "playerId": 1966}, {"name": "Brook Lopez", "points": 162.0, "playerId": 3448}, {"name": "Josh Giddey", "points": 124.0, "playerId": 4871145}, {"name": "John Collins", "points": 114.0, "playerId": 3908845}, {"name": "Spencer Dinwiddie", "points": 97.0, "playerId": 2580782}], "MIDD": [{"name": "Luka Doncic", "points": 158.0, "playerId": 3945274}, {"name": "Max Strus", "points": 140.0, "playerId": 4065778}, {"name": "Brandon Ingram", "points": 134.0, "playerId": 3913176}, {"name": "Victor Wembanyama", "points": 121.0, "playerId": 5104157}, {"name": "De'Anthony Melton", "points": 110.0, "playerId": 4066436}], "DD ": [{"name": "Scottie Barnes", "points": 178.0, "playerId": 4433134}, {"name": "Jayson Tatum", "points": 164.0, "playerId": 4065648}, {"name": "Tobias Harris", "points": 147.0, "playerId": 6440}, {"name": "Nikola Vucevic", "points": 127.0, "playerId": 6478}, {"name": "Bobby Portis", "points": 126.0, "playerId": 3064482}], "TyPc": [{"name": "Julius Randle", "points": 168.0, "playerId": 3064514}, {"name": "Jordan Clarkson", "points": 150.0, "playerId": 2528426}, {"name": "Bam Adebayo", "points": 135.0, "playerId": 4066261}, {"name": "Jerami Grant", "points": 107.0, "playerId": 2991070}, {"name": "Dennis Schroder", "points": 105.0, "playerId": 3032979}], "GALL": [{"name": "Joel Embiid", "points": 227.0, "playerId": 3059318}, {"name": "Jalen Brunson", "points": 183.0, "playerId": 3934672}, {"name": "Damian Lillard", "points": 177.0, "playerId": 6606}, {"name": "Kristaps Porzingis", "points": 152.0, "playerId": 3102531}, {"name": "D'Angelo Russell", "points": 134.0, "playerId": 3136776}], "SAM": [{"name": "Domantas Sabonis", "points": 250.0, "playerId": 3155942}, {"name": "Evan Mobley", "points": 170.0, "playerId": 4432158}, {"name": "Zach LaVine", "points": 166.0, "playerId": 3064440}, {"name": "Devin Booker", "points": 142.0, "playerId": 3136193}, {"name": "Zach Collins", "points": 110.0, "playerId": 4066650}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 242.0, "playerId": 4278073}, {"name": "Chet Holmgren", "points": 164.0, "playerId": 4433255}, {"name": "LaMelo Ball", "points": 154.0, "playerId": 4432816}, {"name": "Lauri Markkanen", "points": 140.0, "playerId": 4066336}, {"name": "Kevin Huerter", "points": 125.0, "playerId": 4066372}]}, "5": {"SHOW": [{"name": "Anthony Edwards", "points": 203.0, "playerId": 4594268}, {"name": "Anthony Davis", "points": 158.0, "playerId": 6583}, {"name": "Alperen Sengun", "points": 138.0, "playerId": 4871144}, {"name": "Myles Turner", "points": 133.0, "playerId": 3133628}, {"name": "Kentavious Caldwell-Pope", "points": 118.0, "playerId": 2581018}], "MIDD": [{"name": "Victor Wembanyama", "points": 186.0, "playerId": 5104157}, {"name": "Brandon Ingram", "points": 169.0, "playerId": 3913176}, {"name": "Kawhi Leonard", "points": 144.0, "playerId": 6450}, {"name": "Michael Porter Jr.", "points": 133.0, "playerId": 4278104}, {"name": "Max Strus", "points": 129.0, "playerId": 4065778}], "NLH": [{"name": "Nikola Jokic", "points": 261.0, "playerId": 3112335}, {"name": "Pascal Siakam", "points": 157.0, "playerId": 3149673}, {"name": "Herbert Jones", "points": 130.0, "playerId": 4277813}, {"name": "Bogdan Bogdanovic", "points": 125.0, "playerId": 3037789}, {"name": "Jaylen Brown", "points": 122.0, "playerId": 3917376}], "TyPc": [{"name": "Trae Young", "points": 242.0, "playerId": 4277905}, {"name": "Tyrese Haliburton", "points": 208.0, "playerId": 4396993}, {"name": "James Harden", "points": 152.0, "playerId": 3992}, {"name": "Jerami Grant", "points": 138.0, "playerId": 2991070}, {"name": "Jusuf Nurkic", "points": 126.0, "playerId": 3102530}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 238.0, "playerId": 3032977}, {"name": "Karl-Anthony Towns", "points": 176.0, "playerId": 3136195}, {"name": "Jarrett Allen", "points": 153.0, "playerId": 4066328}, {"name": "Fred VanVleet", "points": 133.0, "playerId": 2991230}, {"name": "Darius Garland", "points": 123.0, "playerId": 4396907}], "SAM": [{"name": "Devin Booker", "points": 221.0, "playerId": 3136193}, {"name": "Evan Mobley", "points": 141.0, "playerId": 4432158}, {"name": "Dejounte Murray", "points": 136.0, "playerId": 3907497}, {"name": "Daniel Gafford", "points": 131.0, "playerId": 4278049}, {"name": "Cameron Johnson", "points": 127.0, "playerId": 3138196}], "SOSA": [{"name": "Brook Lopez", "points": 229.0, "playerId": 3448}, {"name": "DeMar DeRozan", "points": 156.0, "playerId": 3978}, {"name": "Zion Williamson", "points": 145.0, "playerId": 4395628}, {"name": "Jonas Valanciunas", "points": 134.0, "playerId": 6477}, {"name": "Spencer Dinwiddie", "points": 129.0, "playerId": 2580782}], "GALL": [{"name": "Kyle Kuzma", "points": 200.0, "playerId": 3134907}, {"name": "Damian Lillard", "points": 183.0, "playerId": 6606}, {"name": "Jalen Brunson", "points": 150.0, "playerId": 3934672}, {"name": "Joel Embiid", "points": 138.0, "playerId": 3059318}, {"name": "Jakob Poeltl", "points": 134.0, "playerId": 3134908}], "DD ": [{"name": "Jayson Tatum", "points": 202.0, "playerId": 4065648}, {"name": "Paolo Banchero", "points": 172.0, "playerId": 4432573}, {"name": "Scottie Barnes", "points": 153.0, "playerId": 4433134}, {"name": "Mikal Bridges", "points": 144.0, "playerId": 3147657}, {"name": "Keldon Johnson", "points": 140.0, "playerId": 4395723}], "BALL": [{"name": "Paul George", "points": 178.0, "playerId": 4251}, {"name": "Franz Wagner", "points": 172.0, "playerId": 4566434}, {"name": "LaMelo Ball", "points": 146.0, "playerId": 4432816}, {"name": "Shai Gilgeous-Alexander", "points": 137.0, "playerId": 4278073}, {"name": "Miles Bridges", "points": 125.0, "playerId": 4066383}]}, "6": {"SAM": [{"name": "Dejounte Murray", "points": 126.0, "playerId": 3907497}, {"name": "Evan Mobley", "points": 123.0, "playerId": 4432158}, {"name": "Daniel Gafford", "points": 121.0, "playerId": 4278049}, {"name": "Jalen Duren", "points": 120.0, "playerId": 4433621}, {"name": "Jabari Smith Jr.", "points": 105.0, "playerId": 4432639}], "GALL": [{"name": "D'Angelo Russell", "points": 188.0, "playerId": 3136776}, {"name": "Cade Cunningham", "points": 183.0, "playerId": 4432166}, {"name": "Jalen Brunson", "points": 156.0, "playerId": 3934672}, {"name": "Damian Lillard", "points": 153.0, "playerId": 6606}, {"name": "Coby White", "points": 132.0, "playerId": 4395651}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 180.0, "playerId": 4278073}, {"name": "Franz Wagner", "points": 145.0, "playerId": 4566434}, {"name": "Terry Rozier", "points": 139.0, "playerId": 3074752}, {"name": "Paul George", "points": 127.0, "playerId": 4251}, {"name": "Jaren Jackson Jr.", "points": 121.0, "playerId": 4277961}], "SOSA": [{"name": "Zion Williamson", "points": 184.0, "playerId": 4395628}, {"name": "LeBron James", "points": 150.0, "playerId": 1966}, {"name": "Jonas Valanciunas", "points": 149.0, "playerId": 6477}, {"name": "Stephen Curry", "points": 144.0, "playerId": 3975}, {"name": "Spencer Dinwiddie", "points": 114.0, "playerId": 2580782}], "DD ": [{"name": "Scottie Barnes", "points": 168.0, "playerId": 4433134}, {"name": "Mikal Bridges", "points": 141.0, "playerId": 3147657}, {"name": "Malcolm Brogdon", "points": 114.0, "playerId": 2566769}, {"name": "Nikola Vucevic", "points": 101.0, "playerId": 6478}, {"name": "Malik Monk", "points": 98.0, "playerId": 4066262}], "NLH": [{"name": "Nikola Jokic", "points": 232.0, "playerId": 3112335}, {"name": "De'Aaron Fox", "points": 178.0, "playerId": 4066259}, {"name": "Desmond Bane", "points": 153.0, "playerId": 4066320}, {"name": "Ivica Zubac", "points": 153.0, "playerId": 4017837}, {"name": "Walker Kessler", "points": 142.0, "playerId": 4433136}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 210.0, "playerId": 3032977}, {"name": "Kevin Durant", "points": 153.0, "playerId": 3202}, {"name": "Karl-Anthony Towns", "points": 118.0, "playerId": 3136195}, {"name": "Clint Capela", "points": 105.0, "playerId": 3102529}, {"name": "Jarrett Allen", "points": 103.0, "playerId": 4066328}], "SHOW": [{"name": "Anthony Davis", "points": 223.0, "playerId": 6583}, {"name": "Alperen Sengun", "points": 145.0, "playerId": 4871144}, {"name": "Tyrese Maxey", "points": 100.0, "playerId": 4431678}, {"name": "Myles Turner", "points": 94.0, "playerId": 3133628}, {"name": "Jimmy Butler", "points": 91.0, "playerId": 6430}], "MIDD": [{"name": "Kawhi Leonard", "points": 204.0, "playerId": 6450}, {"name": "Luka Doncic", "points": 168.0, "playerId": 3945274}, {"name": "Michael Porter Jr.", "points": 158.0, "playerId": 4278104}, {"name": "Donovan Mitchell", "points": 149.0, "playerId": 3908809}, {"name": "Brandon Ingram", "points": 146.0, "playerId": 3913176}], "TyPc": [{"name": "James Harden", "points": 173.0, "playerId": 3992}, {"name": "Trae Young", "points": 166.0, "playerId": 4277905}, {"name": "Julius Randle", "points": 158.0, "playerId": 3064514}, {"name": "Rudy Gobert", "points": 145.0, "playerId": 3032976}, {"name": "Tyrese Haliburton", "points": 136.0, "playerId": 4396993}]}, "7": {"SOSA": [{"name": "LeBron James", "points": 138.0, "playerId": 1966}, {"name": "Brook Lopez", "points": 88.0, "playerId": 3448}, {"name": "Stephen Curry", "points": 82.0, "playerId": 3975}, {"name": "DeMar DeRozan", "points": 76.0, "playerId": 3978}, {"name": "John Collins", "points": 73.0, "playerId": 3908845}], "SAM": [{"name": "Domantas Sabonis", "points": 107.0, "playerId": 3155942}, {"name": "Devin Booker", "points": 87.0, "playerId": 3136193}, {"name": "Dejounte Murray", "points": 79.0, "playerId": 3907497}, {"name": "Dereck Lively II", "points": 67.0, "playerId": 4683688}, {"name": "Daniel Gafford", "points": 61.0, "playerId": 4278049}], "NLH": [{"name": "Desmond Bane", "points": 107.0, "playerId": 4066320}, {"name": "Pascal Siakam", "points": 98.0, "playerId": 3149673}, {"name": "Shaedon Sharpe", "points": 90.0, "playerId": 4914336}, {"name": "Jaylen Brown", "points": 83.0, "playerId": 3917376}, {"name": "Nikola Jokic", "points": 82.0, "playerId": 3112335}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 152.0, "playerId": 4278073}, {"name": "Terry Rozier", "points": 95.0, "playerId": 3074752}, {"name": "Paul George", "points": 93.0, "playerId": 4251}, {"name": "Miles Bridges", "points": 85.0, "playerId": 4066383}, {"name": "Chet Holmgren", "points": 71.0, "playerId": 4433255}], "SHOW": [{"name": "Tyrese Maxey", "points": 101.0, "playerId": 4431678}, {"name": "Derrick White", "points": 101.0, "playerId": 3078576}, {"name": "Anthony Davis", "points": 96.0, "playerId": 6583}, {"name": "Myles Turner", "points": 93.0, "playerId": 3133628}, {"name": "Alperen Sengun", "points": 83.0, "playerId": 4871144}], "DD ": [{"name": "Jayson Tatum", "points": 99.0, "playerId": 4065648}, {"name": "Mikal Bridges", "points": 99.0, "playerId": 3147657}, {"name": "Paolo Banchero", "points": 96.0, "playerId": 4432573}, {"name": "Scottie Barnes", "points": 94.0, "playerId": 4433134}, {"name": "Tyus Jones", "points": 86.0, "playerId": 3135046}], "TyPc": [{"name": "Tyrese Haliburton", "points": 147.0, "playerId": 4396993}, {"name": "Rudy Gobert", "points": 117.0, "playerId": 3032976}, {"name": "Julius Randle", "points": 87.0, "playerId": 3064514}, {"name": "James Harden", "points": 86.0, "playerId": 3992}, {"name": "Jalen Williams", "points": 81.0, "playerId": 4593803}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 133.0, "playerId": 3032977}, {"name": "Darius Garland", "points": 94.0, "playerId": 4396907}, {"name": "Mike Conley", "points": 77.0, "playerId": 3195}, {"name": "Fred VanVleet", "points": 73.0, "playerId": 2991230}, {"name": "Karl-Anthony Towns", "points": 69.0, "playerId": 3136195}], "GALL": [{"name": "Joel Embiid", "points": 154.0, "playerId": 3059318}, {"name": "Damian Lillard", "points": 99.0, "playerId": 6606}, {"name": "Gordon Hayward", "points": 88.0, "playerId": 4249}, {"name": "Coby White", "points": 82.0, "playerId": 4395651}, {"name": "Cade Cunningham", "points": 77.0, "playerId": 4432166}], "MIDD": [{"name": "Luka Doncic", "points": 127.0, "playerId": 3945274}, {"name": "Kawhi Leonard", "points": 103.0, "playerId": 6450}, {"name": "Donovan Mitchell", "points": 100.0, "playerId": 3908809}, {"name": "Victor Wembanyama", "points": 83.0, "playerId": 5104157}, {"name": "Michael Porter Jr.", "points": 76.0, "playerId": 4278104}]}, "8": {"SAM": [{"name": "Devin Booker", "points": 203.0, "playerId": 3136193}, {"name": "Domantas Sabonis", "points": 171.0, "playerId": 3155942}, {"name": "Anfernee Simons", "points": 164.0, "playerId": 4351851}, {"name": "Dejounte Murray", "points": 156.0, "playerId": 3907497}, {"name": "Jabari Smith Jr.", "points": 122.0, "playerId": 4432639}], "NLH": [{"name": "Nikola Jokic", "points": 219.0, "playerId": 3112335}, {"name": "Jaylen Brown", "points": 174.0, "playerId": 3917376}, {"name": "Bogdan Bogdanovic", "points": 156.0, "playerId": 3037789}, {"name": "Pascal Siakam", "points": 135.0, "playerId": 3149673}, {"name": "Trey Murphy III", "points": 127.0, "playerId": 4397688}], "BALL": [{"name": "Terry Rozier", "points": 199.0, "playerId": 3074752}, {"name": "Shai Gilgeous-Alexander", "points": 180.0, "playerId": 4278073}, {"name": "Jaren Jackson Jr.", "points": 179.0, "playerId": 4277961}, {"name": "Chet Holmgren", "points": 135.0, "playerId": 4433255}, {"name": "Jaime Jaquez Jr.", "points": 125.0, "playerId": 4432848}], "SHOW": [{"name": "Keegan Murray", "points": 185.0, "playerId": 4594327}, {"name": "Derrick White", "points": 172.0, "playerId": 3078576}, {"name": "Jimmy Butler", "points": 157.0, "playerId": 6430}, {"name": "Tyrese Maxey", "points": 149.0, "playerId": 4431678}, {"name": "Alperen Sengun", "points": 122.0, "playerId": 4871144}], "DD ": [{"name": "Tyus Jones", "points": 180.0, "playerId": 3135046}, {"name": "Nikola Vucevic", "points": 177.0, "playerId": 6478}, {"name": "CJ McCollum", "points": 168.0, "playerId": 2490149}, {"name": "Jayson Tatum", "points": 165.0, "playerId": 4065648}, {"name": "Scottie Barnes", "points": 152.0, "playerId": 4433134}], "TyPc": [{"name": "Trae Young", "points": 222.0, "playerId": 4277905}, {"name": "James Harden", "points": 214.0, "playerId": 3992}, {"name": "Julius Randle", "points": 186.0, "playerId": 3064514}, {"name": "Jusuf Nurkic", "points": 165.0, "playerId": 3102530}, {"name": "Dennis Schroder", "points": 120.0, "playerId": 3032979}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 191.0, "playerId": 3032977}, {"name": "Fred VanVleet", "points": 178.0, "playerId": 2991230}, {"name": "Kevin Durant", "points": 135.0, "playerId": 3202}, {"name": "Darius Garland", "points": 125.0, "playerId": 4396907}, {"name": "Clint Capela", "points": 122.0, "playerId": 3102529}], "GALL": [{"name": "Joel Embiid", "points": 284.0, "playerId": 3059318}, {"name": "Jalen Brunson", "points": 214.0, "playerId": 3934672}, {"name": "Coby White", "points": 210.0, "playerId": 4395651}, {"name": "Damian Lillard", "points": 189.0, "playerId": 6606}, {"name": "Kyle Kuzma", "points": 145.0, "playerId": 3134907}], "MIDD": [{"name": "Luka Doncic", "points": 276.0, "playerId": 3945274}, {"name": "Kawhi Leonard", "points": 240.0, "playerId": 6450}, {"name": "Victor Wembanyama", "points": 222.0, "playerId": 5104157}, {"name": "Klay Thompson", "points": 150.0, "playerId": 6475}, {"name": "Brandon Ingram", "points": 134.0, "playerId": 3913176}], "SOSA": [{"name": "DeMar DeRozan", "points": 181.0, "playerId": 3978}, {"name": "Spencer Dinwiddie", "points": 166.0, "playerId": 2580782}, {"name": "Jonas Valanciunas", "points": 146.0, "playerId": 6477}, {"name": "Stephen Curry", "points": 142.0, "playerId": 3975}, {"name": "Zion Williamson", "points": 135.0, "playerId": 4395628}]}, "9": {"SHOW": [{"name": "Anthony Davis", "points": 229.0, "playerId": 6583}, {"name": "Anthony Edwards", "points": 221.0, "playerId": 4594268}, {"name": "Alperen Sengun", "points": 192.0, "playerId": 4871144}, {"name": "Derrick White", "points": 165.0, "playerId": 3078576}, {"name": "Keegan Murray", "points": 138.0, "playerId": 4594327}], "SAM": [{"name": "Domantas Sabonis", "points": 217.0, "playerId": 3155942}, {"name": "Jamal Murray", "points": 200.0, "playerId": 3936299}, {"name": "Dejounte Murray", "points": 175.0, "playerId": 3907497}, {"name": "Jabari Smith Jr.", "points": 165.0, "playerId": 4432639}, {"name": "Anfernee Simons", "points": 135.0, "playerId": 4351851}], "TyPc": [{"name": "Trae Young", "points": 244.0, "playerId": 4277905}, {"name": "Tyrese Haliburton", "points": 175.0, "playerId": 4396993}, {"name": "James Harden", "points": 172.0, "playerId": 3992}, {"name": "Rudy Gobert", "points": 165.0, "playerId": 3032976}, {"name": "Julius Randle", "points": 115.0, "playerId": 3064514}], "NLH": [{"name": "Nikola Jokic", "points": 235.0, "playerId": 3112335}, {"name": "De'Aaron Fox", "points": 217.0, "playerId": 4066259}, {"name": "Desmond Bane", "points": 161.0, "playerId": 4066320}, {"name": "Pascal Siakam", "points": 160.0, "playerId": 3149673}, {"name": "Ja Morant", "points": 155.0, "playerId": 4279888}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 187.0, "playerId": 4278073}, {"name": "Chet Holmgren", "points": 148.0, "playerId": 4433255}, {"name": "Lauri Markkanen", "points": 141.0, "playerId": 4066336}, {"name": "Paul George", "points": 133.0, "playerId": 4251}, {"name": "Jaren Jackson Jr.", "points": 107.0, "playerId": 4277961}], "MIDD": [{"name": "Luka Doncic", "points": 179.0, "playerId": 3945274}, {"name": "Nic Claxton", "points": 144.0, "playerId": 4278067}, {"name": "Brandon Ingram", "points": 127.0, "playerId": 3913176}, {"name": "Michael Porter Jr.", "points": 112.0, "playerId": 4278104}, {"name": "Klay Thompson", "points": 108.0, "playerId": 6475}], "GALL": [{"name": "Joel Embiid", "points": 227.0, "playerId": 3059318}, {"name": "Cade Cunningham", "points": 166.0, "playerId": 4432166}, {"name": "Damian Lillard", "points": 148.0, "playerId": 6606}, {"name": "Coby White", "points": 147.0, "playerId": 4395651}, {"name": "Jrue Holiday", "points": 137.0, "playerId": 3995}], "SOSA": [{"name": "LeBron James", "points": 196.0, "playerId": 1966}, {"name": "DeMar DeRozan", "points": 192.0, "playerId": 3978}, {"name": "Stephen Curry", "points": 140.0, "playerId": 3975}, {"name": "Cam Thomas", "points": 127.0, "playerId": 4432174}, {"name": "Jonas Valanciunas", "points": 117.0, "playerId": 6477}], "DD ": [{"name": "Scottie Barnes", "points": 217.0, "playerId": 4433134}, {"name": "Nikola Vucevic", "points": 154.0, "playerId": 6478}, {"name": "Onyeka Okongwu", "points": 125.0, "playerId": 4431680}, {"name": "Tyus Jones", "points": 124.0, "playerId": 3135046}, {"name": "CJ McCollum", "points": 116.0, "playerId": 2490149}], "BEER": [{"name": "Clint Capela", "points": 157.0, "playerId": 3102529}, {"name": "Giannis Antetokounmpo", "points": 156.0, "playerId": 3032977}, {"name": "Jarrett Allen", "points": 152.0, "playerId": 4066328}, {"name": "Austin Reaves", "points": 139.0, "playerId": 4066457}, {"name": "Mike Conley", "points": 135.0, "playerId": 3195}]}, "10": {"TyPc": [{"name": "Tyrese Haliburton", "points": 228.0, "playerId": 4396993}, {"name": "Jalen Williams", "points": 171.0, "playerId": 4593803}, {"name": "Trae Young", "points": 163.0, "playerId": 4277905}, {"name": "Julius Randle", "points": 155.0, "playerId": 3064514}, {"name": "Bam Adebayo", "points": 151.0, "playerId": 4066261}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 219.0, "playerId": 4278073}, {"name": "Franz Wagner", "points": 200.0, "playerId": 4566434}, {"name": "Chet Holmgren", "points": 180.0, "playerId": 4433255}, {"name": "Terry Rozier", "points": 135.0, "playerId": 3074752}, {"name": "Jaren Jackson Jr.", "points": 130.0, "playerId": 4277961}], "GALL": [{"name": "Cade Cunningham", "points": 201.0, "playerId": 4432166}, {"name": "Jalen Brunson", "points": 171.0, "playerId": 3934672}, {"name": "Kyle Kuzma", "points": 142.0, "playerId": 3134907}, {"name": "Kristaps Porzingis", "points": 140.0, "playerId": 3102531}, {"name": "Jakob Poeltl", "points": 112.0, "playerId": 3134908}], "SHOW": [{"name": "Anthony Davis", "points": 265.0, "playerId": 6583}, {"name": "Derrick White", "points": 188.0, "playerId": 3078576}, {"name": "Alperen Sengun", "points": 161.0, "playerId": 4871144}, {"name": "Grayson Allen", "points": 149.0, "playerId": 3135045}, {"name": "Anthony Edwards", "points": 141.0, "playerId": 4594268}], "SAM": [{"name": "Devin Booker", "points": 183.0, "playerId": 3136193}, {"name": "Domantas Sabonis", "points": 164.0, "playerId": 3155942}, {"name": "Daniel Gafford", "points": 147.0, "playerId": 4278049}, {"name": "Jamal Murray", "points": 139.0, "playerId": 3936299}, {"name": "Tyler Herro", "points": 120.0, "playerId": 4395725}], "DD ": [{"name": "Tobias Harris", "points": 182.0, "playerId": 6440}, {"name": "Scottie Barnes", "points": 174.0, "playerId": 4433134}, {"name": "Paolo Banchero", "points": 173.0, "playerId": 4432573}, {"name": "Jayson Tatum", "points": 155.0, "playerId": 4065648}, {"name": "Malcolm Brogdon", "points": 143.0, "playerId": 2566769}], "SOSA": [{"name": "LeBron James", "points": 177.0, "playerId": 1966}, {"name": "DeMar DeRozan", "points": 114.0, "playerId": 3978}, {"name": "Zion Williamson", "points": 113.0, "playerId": 4395628}, {"name": "Josh Giddey", "points": 109.0, "playerId": 4871145}, {"name": "Brook Lopez", "points": 102.0, "playerId": 3448}], "NLH": [{"name": "Devin Vassell", "points": 193.0, "playerId": 4395630}, {"name": "De'Aaron Fox", "points": 172.0, "playerId": 4066259}, {"name": "Nikola Jokic", "points": 166.0, "playerId": 3112335}, {"name": "Desmond Bane", "points": 160.0, "playerId": 4066320}, {"name": "Pascal Siakam", "points": 144.0, "playerId": 3149673}], "MIDD": [{"name": "Luka Doncic", "points": 253.0, "playerId": 3945274}, {"name": "Brandon Ingram", "points": 180.0, "playerId": 3913176}, {"name": "Victor Wembanyama", "points": 158.0, "playerId": 5104157}, {"name": "De'Anthony Melton", "points": 138.0, "playerId": 4066436}, {"name": "Nic Claxton", "points": 117.0, "playerId": 4278067}], "BEER": [{"name": "Jarrett Allen", "points": 135.0, "playerId": 4066328}, {"name": "Fred VanVleet", "points": 125.0, "playerId": 2991230}, {"name": "Jordan Poole", "points": 119.0, "playerId": 4277956}, {"name": "Austin Reaves", "points": 111.0, "playerId": 4066457}, {"name": "Mike Conley", "points": 104.0, "playerId": 3195}]}, "11": {"GALL": [{"name": "Jalen Brunson", "points": 200.0, "playerId": 3934672}, {"name": "Damian Lillard", "points": 146.0, "playerId": 6606}, {"name": "Jakob Poeltl", "points": 139.0, "playerId": 3134908}, {"name": "Bradley Beal", "points": 137.0, "playerId": 6580}, {"name": "Aaron Gordon", "points": 124.0, "playerId": 3064290}], "DD ": [{"name": "Paolo Banchero", "points": 216.0, "playerId": 4432573}, {"name": "Jayson Tatum", "points": 183.0, "playerId": 4065648}, {"name": "CJ McCollum", "points": 158.0, "playerId": 2490149}, {"name": "Mikal Bridges", "points": 113.0, "playerId": 3147657}, {"name": "Jonathan Kuminga", "points": 107.0, "playerId": 4433247}], "TyPc": [{"name": "Tyrese Haliburton", "points": 250.0, "playerId": 4396993}, {"name": "Julius Randle", "points": 173.0, "playerId": 3064514}, {"name": "James Harden", "points": 163.0, "playerId": 3992}, {"name": "Jalen Williams", "points": 125.0, "playerId": 4593803}, {"name": "Trae Young", "points": 114.0, "playerId": 4277905}], "SOSA": [{"name": "Stephen Curry", "points": 171.0, "playerId": 3975}, {"name": "RJ Barrett", "points": 139.0, "playerId": 4395625}, {"name": "LeBron James", "points": 133.0, "playerId": 1966}, {"name": "Jalen Green", "points": 106.0, "playerId": 4437244}, {"name": "Kevin Love", "points": 104.0, "playerId": 3449}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 226.0, "playerId": 3032977}, {"name": "Karl-Anthony Towns", "points": 141.0, "playerId": 3136195}, {"name": "Jarrett Allen", "points": 132.0, "playerId": 4066328}, {"name": "T.J. McConnell", "points": 124.0, "playerId": 2530530}, {"name": "Fred VanVleet", "points": 118.0, "playerId": 2991230}], "BALL": [{"name": "Paul George", "points": 182.0, "playerId": 4251}, {"name": "Lauri Markkanen", "points": 168.0, "playerId": 4066336}, {"name": "Jaren Jackson Jr.", "points": 115.0, "playerId": 4277961}, {"name": "OG Anunoby", "points": 102.0, "playerId": 3934719}, {"name": "Miles Bridges", "points": 99.0, "playerId": 4066383}], "SHOW": [{"name": "Anthony Edwards", "points": 197.0, "playerId": 4594268}, {"name": "Kyrie Irving", "points": 194.0, "playerId": 6442}, {"name": "Anthony Davis", "points": 176.0, "playerId": 6583}, {"name": "Alperen Sengun", "points": 166.0, "playerId": 4871144}, {"name": "Grayson Allen", "points": 147.0, "playerId": 3135045}], "NLH": [{"name": "Nikola Jokic", "points": 244.0, "playerId": 3112335}, {"name": "Isaiah Hartenstein", "points": 191.0, "playerId": 4222252}, {"name": "Pascal Siakam", "points": 183.0, "playerId": 3149673}, {"name": "Desmond Bane", "points": 179.0, "playerId": 4066320}, {"name": "Ja Morant", "points": 149.0, "playerId": 4279888}], "MIDD": [{"name": "Donovan Mitchell", "points": 166.0, "playerId": 3908809}, {"name": "Victor Wembanyama", "points": 156.0, "playerId": 5104157}, {"name": "Nic Claxton", "points": 156.0, "playerId": 4278067}, {"name": "Luka Doncic", "points": 155.0, "playerId": 3945274}, {"name": "Klay Thompson", "points": 145.0, "playerId": 6475}], "SAM": [{"name": "Jamal Murray", "points": 199.0, "playerId": 3936299}, {"name": "Domantas Sabonis", "points": 196.0, "playerId": 3155942}, {"name": "Devin Booker", "points": 168.0, "playerId": 3136193}, {"name": "Jalen Duren", "points": 141.0, "playerId": 4433621}, {"name": "Cameron Johnson", "points": 119.0, "playerId": 3138196}]}, "12": {"SOSA": [{"name": "DeMar DeRozan", "points": 165.0, "playerId": 3978}, {"name": "Brook Lopez", "points": 157.0, "playerId": 3448}, {"name": "Josh Giddey", "points": 149.0, "playerId": 4871145}, {"name": "John Collins", "points": 128.0, "playerId": 3908845}, {"name": "Jonas Valanciunas", "points": 124.0, "playerId": 6477}], "BEER": [{"name": "Karl-Anthony Towns", "points": 194.0, "playerId": 3136195}, {"name": "Giannis Antetokounmpo", "points": 159.0, "playerId": 3032977}, {"name": "Jordan Poole", "points": 125.0, "playerId": 4277956}, {"name": "Immanuel Quickley", "points": 100.0, "playerId": 4395724}, {"name": "Mike Conley", "points": 93.0, "playerId": 3195}], "NLH": [{"name": "Jaylen Brown", "points": 189.0, "playerId": 3917376}, {"name": "Nikola Jokic", "points": 182.0, "playerId": 3112335}, {"name": "De'Aaron Fox", "points": 151.0, "playerId": 4066259}, {"name": "Isaiah Hartenstein", "points": 127.0, "playerId": 4222252}, {"name": "Walker Kessler", "points": 105.0, "playerId": 4433136}], "GALL": [{"name": "Coby White", "points": 173.0, "playerId": 4395651}, {"name": "Malik Monk", "points": 157.0, "playerId": 4066262}, {"name": "Bradley Beal", "points": 132.0, "playerId": 6580}, {"name": "Damian Lillard", "points": 131.0, "playerId": 6606}, {"name": "D'Angelo Russell", "points": 128.0, "playerId": 3136776}], "DD ": [{"name": "Nikola Vucevic", "points": 177.0, "playerId": 6478}, {"name": "Jayson Tatum", "points": 121.0, "playerId": 4065648}, {"name": "Tobias Harris", "points": 115.0, "playerId": 6440}, {"name": "Bobby Portis", "points": 114.0, "playerId": 3064482}, {"name": "Scottie Barnes", "points": 112.0, "playerId": 4433134}], "MIDD": [{"name": "Kawhi Leonard", "points": 213.0, "playerId": 6450}, {"name": "Michael Porter Jr.", "points": 111.0, "playerId": 4278104}, {"name": "Deni Avdija", "points": 105.0, "playerId": 4683021}, {"name": "Klay Thompson", "points": 104.0, "playerId": 6475}, {"name": "Russell Westbrook", "points": 101.0, "playerId": 3468}], "SHOW": [{"name": "Kyrie Irving", "points": 190.0, "playerId": 6442}, {"name": "Alperen Sengun", "points": 171.0, "playerId": 4871144}, {"name": "Collin Sexton", "points": 158.0, "playerId": 4277811}, {"name": "Keegan Murray", "points": 154.0, "playerId": 4594327}, {"name": "Anthony Davis", "points": 147.0, "playerId": 6583}], "TyPc": [{"name": "Bam Adebayo", "points": 184.0, "playerId": 4066261}, {"name": "Jalen Williams", "points": 181.0, "playerId": 4593803}, {"name": "Jordan Clarkson", "points": 154.0, "playerId": 2528426}, {"name": "James Harden", "points": 148.0, "playerId": 3992}, {"name": "Rudy Gobert", "points": 147.0, "playerId": 3032976}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 247.0, "playerId": 4278073}, {"name": "Lauri Markkanen", "points": 197.0, "playerId": 4066336}, {"name": "Chet Holmgren", "points": 186.0, "playerId": 4433255}, {"name": "Paul George", "points": 179.0, "playerId": 4251}, {"name": "Terry Rozier", "points": 177.0, "playerId": 3074752}], "SAM": [{"name": "Domantas Sabonis", "points": 245.0, "playerId": 3155942}, {"name": "Zach LaVine", "points": 171.0, "playerId": 3064440}, {"name": "Devin Booker", "points": 137.0, "playerId": 3136193}, {"name": "Dejounte Murray", "points": 117.0, "playerId": 3907497}, {"name": "Tyler Herro", "points": 112.0, "playerId": 4395725}]}, "13": {"NLH": [{"name": "Nikola Jokic", "points": 209.0, "playerId": 3112335}, {"name": "Devin Vassell", "points": 120.0, "playerId": 4395630}, {"name": "Jaylen Brown", "points": 107.0, "playerId": 3917376}, {"name": "Isaiah Hartenstein", "points": 105.0, "playerId": 4222252}, {"name": "Walker Kessler", "points": 98.0, "playerId": 4433136}], "MIDD": [{"name": "Donovan Mitchell", "points": 165.0, "playerId": 3908809}, {"name": "Nic Claxton", "points": 164.0, "playerId": 4278067}, {"name": "Victor Wembanyama", "points": 153.0, "playerId": 5104157}, {"name": "Brandon Ingram", "points": 128.0, "playerId": 3913176}, {"name": "Naz Reid", "points": 99.0, "playerId": 4396971}], "SOSA": [{"name": "LeBron James", "points": 162.0, "playerId": 1966}, {"name": "Spencer Dinwiddie", "points": 129.0, "playerId": 2580782}, {"name": "Zion Williamson", "points": 112.0, "playerId": 4395628}, {"name": "RJ Barrett", "points": 106.0, "playerId": 4395625}, {"name": "Josh Giddey", "points": 103.0, "playerId": 4871145}], "SHOW": [{"name": "Anthony Davis", "points": 235.0, "playerId": 6583}, {"name": "Tyrese Maxey", "points": 189.0, "playerId": 4431678}, {"name": "Jimmy Butler", "points": 163.0, "playerId": 6430}, {"name": "Grayson Allen", "points": 137.0, "playerId": 3135045}, {"name": "Myles Turner", "points": 126.0, "playerId": 3133628}], "SAM": [{"name": "Dejounte Murray", "points": 164.0, "playerId": 3907497}, {"name": "Devin Booker", "points": 155.0, "playerId": 3136193}, {"name": "Jamal Murray", "points": 131.0, "playerId": 3936299}, {"name": "Jaden Ivey", "points": 129.0, "playerId": 4433218}, {"name": "Vince Williams Jr.", "points": 113.0, "playerId": 4397227}], "BEER": [{"name": "Buddy Hield", "points": 148.0, "playerId": 2990984}, {"name": "Jarrett Allen", "points": 135.0, "playerId": 4066328}, {"name": "Immanuel Quickley", "points": 134.0, "playerId": 4395724}, {"name": "Austin Reaves", "points": 120.0, "playerId": 4066457}, {"name": "Karl-Anthony Towns", "points": 104.0, "playerId": 3136195}], "GALL": [{"name": "Joel Embiid", "points": 255.0, "playerId": 3059318}, {"name": "D'Angelo Russell", "points": 184.0, "playerId": 3136776}, {"name": "Jalen Brunson", "points": 178.0, "playerId": 3934672}, {"name": "Kyle Kuzma", "points": 161.0, "playerId": 3134907}, {"name": "Alec Burks", "points": 132.0, "playerId": 6429}], "TyPc": [{"name": "Jalen Williams", "points": 199.0, "playerId": 4593803}, {"name": "Bam Adebayo", "points": 146.0, "playerId": 4066261}, {"name": "Julius Randle", "points": 144.0, "playerId": 3064514}, {"name": "Trae Young", "points": 124.0, "playerId": 4277905}, {"name": "Jerami Grant", "points": 124.0, "playerId": 2991070}], "BALL": [{"name": "OG Anunoby", "points": 141.0, "playerId": 3934719}, {"name": "Terry Rozier", "points": 119.0, "playerId": 3074752}, {"name": "Shai Gilgeous-Alexander", "points": 117.0, "playerId": 4278073}, {"name": "Miles Bridges", "points": 109.0, "playerId": 4066383}, {"name": "LaMelo Ball", "points": 107.0, "playerId": 4432816}], "DD ": [{"name": "Mikal Bridges", "points": 177.0, "playerId": 3147657}, {"name": "Tyus Jones", "points": 165.0, "playerId": 3135046}, {"name": "Scottie Barnes", "points": 160.0, "playerId": 4433134}, {"name": "Tre Jones", "points": 157.0, "playerId": 4395626}, {"name": "Jayson Tatum", "points": 133.0, "playerId": 4065648}]}, "14": {"SAM": [{"name": "Devin Booker", "points": 266.0, "playerId": 3136193}, {"name": "Anfernee Simons", "points": 171.0, "playerId": 4351851}, {"name": "Vince Williams Jr.", "points": 155.0, "playerId": 4397227}, {"name": "Jalen Duren", "points": 147.0, "playerId": 4433621}, {"name": "Dejounte Murray", "points": 134.0, "playerId": 3907497}], "TyPc": [{"name": "Rudy Gobert", "points": 160.0, "playerId": 3032976}, {"name": "Deandre Ayton", "points": 149.0, "playerId": 4278129}, {"name": "Jalen Williams", "points": 142.0, "playerId": 4593803}, {"name": "Bam Adebayo", "points": 123.0, "playerId": 4066261}, {"name": "Jerami Grant", "points": 119.0, "playerId": 2991070}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 165.0, "playerId": 4278073}, {"name": "Miles Bridges", "points": 161.0, "playerId": 4066383}, {"name": "Jaren Jackson Jr.", "points": 155.0, "playerId": 4277961}, {"name": "Jalen Johnson", "points": 155.0, "playerId": 4701230}, {"name": "Lauri Markkanen", "points": 123.0, "playerId": 4066336}], "GALL": [{"name": "Joel Embiid", "points": 151.0, "playerId": 3059318}, {"name": "Damian Lillard", "points": 149.0, "playerId": 6606}, {"name": "D'Angelo Russell", "points": 143.0, "playerId": 3136776}, {"name": "Jalen Brunson", "points": 135.0, "playerId": 3934672}, {"name": "Coby White", "points": 131.0, "playerId": 4395651}], "DD ": [{"name": "Jayson Tatum", "points": 152.0, "playerId": 4065648}, {"name": "Scottie Barnes", "points": 142.0, "playerId": 4433134}, {"name": "Jonathan Kuminga", "points": 142.0, "playerId": 4433247}, {"name": "Draymond Green", "points": 133.0, "playerId": 6589}, {"name": "Mikal Bridges", "points": 126.0, "playerId": 3147657}], "SOSA": [{"name": "Stephen Curry", "points": 161.0, "playerId": 3975}, {"name": "DeMar DeRozan", "points": 138.0, "playerId": 3978}, {"name": "Brook Lopez", "points": 137.0, "playerId": 3448}, {"name": "Jalen Green", "points": 135.0, "playerId": 4437244}, {"name": "LeBron James", "points": 134.0, "playerId": 1966}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 269.0, "playerId": 3032977}, {"name": "Kevin Durant", "points": 191.0, "playerId": 3202}, {"name": "Karl-Anthony Towns", "points": 155.0, "playerId": 3136195}, {"name": "Fred VanVleet", "points": 138.0, "playerId": 2991230}, {"name": "Jarrett Allen", "points": 121.0, "playerId": 4066328}], "NLH": [{"name": "Pascal Siakam", "points": 190.0, "playerId": 3149673}, {"name": "Nikola Jokic", "points": 172.0, "playerId": 3112335}, {"name": "Devin Vassell", "points": 162.0, "playerId": 4395630}, {"name": "Bogdan Bogdanovic", "points": 138.0, "playerId": 3037789}, {"name": "De'Aaron Fox", "points": 124.0, "playerId": 4066259}], "MIDD": [{"name": "Luka Doncic", "points": 316.0, "playerId": 3945274}, {"name": "Victor Wembanyama", "points": 202.0, "playerId": 5104157}, {"name": "Kawhi Leonard", "points": 169.0, "playerId": 6450}, {"name": "Donovan Mitchell", "points": 150.0, "playerId": 3908809}, {"name": "Bojan Bogdanovic", "points": 131.0, "playerId": 3593}], "SHOW": [{"name": "P.J. Washington", "points": 172.0, "playerId": 4278078}, {"name": "Anthony Edwards", "points": 165.0, "playerId": 4594268}, {"name": "Anthony Davis", "points": 148.0, "playerId": 6583}, {"name": "Collin Sexton", "points": 128.0, "playerId": 4277811}, {"name": "Alperen Sengun", "points": 116.0, "playerId": 4871144}]}, "15": {"GALL": [{"name": "Jalen Brunson", "points": 202.0, "playerId": 3934672}, {"name": "Bradley Beal", "points": 155.0, "playerId": 6580}, {"name": "Damian Lillard", "points": 141.0, "playerId": 6606}, {"name": "Coby White", "points": 128.0, "playerId": 4395651}, {"name": "Aaron Gordon", "points": 126.0, "playerId": 3064290}], "SAM": [{"name": "Domantas Sabonis", "points": 227.0, "playerId": 3155942}, {"name": "Brandon Miller", "points": 190.0, "playerId": 4433287}, {"name": "Jamal Murray", "points": 186.0, "playerId": 3936299}, {"name": "Devin Booker", "points": 167.0, "playerId": 3136193}, {"name": "Anfernee Simons", "points": 162.0, "playerId": 4351851}], "SOSA": [{"name": "Stephen Curry", "points": 194.0, "playerId": 3975}, {"name": "Jalen Green", "points": 166.0, "playerId": 4437244}, {"name": "LeBron James", "points": 148.0, "playerId": 1966}, {"name": "John Collins", "points": 133.0, "playerId": 3908845}, {"name": "DeMar DeRozan", "points": 121.0, "playerId": 3978}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 284.0, "playerId": 4278073}, {"name": "Franz Wagner", "points": 179.0, "playerId": 4566434}, {"name": "Chet Holmgren", "points": 167.0, "playerId": 4433255}, {"name": "Miles Bridges", "points": 163.0, "playerId": 4066383}, {"name": "Lauri Markkanen", "points": 131.0, "playerId": 4066336}], "NLH": [{"name": "Nikola Jokic", "points": 217.0, "playerId": 3112335}, {"name": "De'Aaron Fox", "points": 182.0, "playerId": 4066259}, {"name": "Pascal Siakam", "points": 157.0, "playerId": 3149673}, {"name": "Devin Vassell", "points": 149.0, "playerId": 4395630}, {"name": "Isaiah Hartenstein", "points": 147.0, "playerId": 4222252}], "DD ": [{"name": "Jayson Tatum", "points": 230.0, "playerId": 4065648}, {"name": "Paolo Banchero", "points": 190.0, "playerId": 4432573}, {"name": "Nikola Vucevic", "points": 131.0, "playerId": 6478}, {"name": "Tre Jones", "points": 130.0, "playerId": 4395626}, {"name": "Jonathan Kuminga", "points": 126.0, "playerId": 4433247}], "SHOW": [{"name": "Jimmy Butler", "points": 183.0, "playerId": 6430}, {"name": "Derrick White", "points": 141.0, "playerId": 3078576}, {"name": "Tyrese Maxey", "points": 112.0, "playerId": 4431678}, {"name": "Caris LeVert", "points": 109.0, "playerId": 2991043}, {"name": "Collin Sexton", "points": 104.0, "playerId": 4277811}], "BEER": [{"name": "Kevin Durant", "points": 233.0, "playerId": 3202}, {"name": "Giannis Antetokounmpo", "points": 162.0, "playerId": 3032977}, {"name": "Karl-Anthony Towns", "points": 142.0, "playerId": 3136195}, {"name": "Fred VanVleet", "points": 137.0, "playerId": 2991230}, {"name": "Jarrett Allen", "points": 112.0, "playerId": 4066328}], "TyPc": [{"name": "Trae Young", "points": 184.0, "playerId": 4277905}, {"name": "Rudy Gobert", "points": 169.0, "playerId": 3032976}, {"name": "Deandre Ayton", "points": 156.0, "playerId": 4278129}, {"name": "Jusuf Nurkic", "points": 144.0, "playerId": 3102530}, {"name": "James Harden", "points": 120.0, "playerId": 3992}], "MIDD": [{"name": "Donovan Mitchell", "points": 258.0, "playerId": 3908809}, {"name": "Kawhi Leonard", "points": 242.0, "playerId": 6450}, {"name": "Victor Wembanyama", "points": 202.0, "playerId": 5104157}, {"name": "Donte DiVincenzo", "points": 197.0, "playerId": 3934673}, {"name": "Luka Doncic", "points": 145.0, "playerId": 3945274}]}, "16": {"SAM": [{"name": "Domantas Sabonis", "points": 233.0, "playerId": 3155942}, {"name": "Evan Mobley", "points": 160.0, "playerId": 4432158}, {"name": "Brandon Miller", "points": 148.0, "playerId": 4433287}, {"name": "Jalen Duren", "points": 138.0, "playerId": 4433621}, {"name": "Brandin Podziemski", "points": 116.0, "playerId": 4709138}], "SOSA": [{"name": "Stephen Curry", "points": 165.0, "playerId": 3975}, {"name": "LeBron James", "points": 154.0, "playerId": 1966}, {"name": "Zion Williamson", "points": 137.0, "playerId": 4395628}, {"name": "DeMar DeRozan", "points": 136.0, "playerId": 3978}, {"name": "Dennis Smith Jr.", "points": 124.0, "playerId": 4065697}], "BALL": [{"name": "Miles Bridges", "points": 200.0, "playerId": 4066383}, {"name": "Jalen Johnson", "points": 160.0, "playerId": 4701230}, {"name": "Shai Gilgeous-Alexander", "points": 159.0, "playerId": 4278073}, {"name": "Chet Holmgren", "points": 141.0, "playerId": 4433255}, {"name": "Franz Wagner", "points": 140.0, "playerId": 4566434}], "NLH": [{"name": "De'Aaron Fox", "points": 131.0, "playerId": 4066259}, {"name": "Onyeka Okongwu", "points": 119.0, "playerId": 4431680}, {"name": "Pascal Siakam", "points": 118.0, "playerId": 3149673}, {"name": "Nikola Jokic", "points": 111.0, "playerId": 3112335}, {"name": "Bogdan Bogdanovic", "points": 106.0, "playerId": 3037789}], "DD ": [{"name": "Jayson Tatum", "points": 175.0, "playerId": 4065648}, {"name": "Scottie Barnes", "points": 173.0, "playerId": 4433134}, {"name": "Nikola Vucevic", "points": 162.0, "playerId": 6478}, {"name": "CJ McCollum", "points": 147.0, "playerId": 2490149}, {"name": "Tyus Jones", "points": 142.0, "playerId": 3135046}], "SHOW": [{"name": "Anthony Davis", "points": 193.0, "playerId": 6583}, {"name": "Jimmy Butler", "points": 116.0, "playerId": 6430}, {"name": "Anthony Edwards", "points": 114.0, "playerId": 4594268}, {"name": "Myles Turner", "points": 111.0, "playerId": 3133628}, {"name": "Jaden Ivey", "points": 105.0, "playerId": 4433218}], "BEER": [{"name": "Kevin Durant", "points": 161.0, "playerId": 3202}, {"name": "Jarrett Allen", "points": 143.0, "playerId": 4066328}, {"name": "Buddy Hield", "points": 118.0, "playerId": 2990984}, {"name": "Austin Reaves", "points": 115.0, "playerId": 4066457}, {"name": "Giannis Antetokounmpo", "points": 112.0, "playerId": 3032977}], "TyPc": [{"name": "James Harden", "points": 147.0, "playerId": 3992}, {"name": "Trae Young", "points": 144.0, "playerId": 4277905}, {"name": "Jalen Williams", "points": 128.0, "playerId": 4593803}, {"name": "Tyrese Haliburton", "points": 126.0, "playerId": 4396993}, {"name": "Deni Avdija", "points": 94.0, "playerId": 4683021}], "MIDD": [{"name": "Luka Doncic", "points": 257.0, "playerId": 3945274}, {"name": "Donovan Mitchell", "points": 217.0, "playerId": 3908809}, {"name": "Brandon Ingram", "points": 203.0, "playerId": 3913176}, {"name": "Saddiq Bey", "points": 156.0, "playerId": 4397136}, {"name": "Nic Claxton", "points": 150.0, "playerId": 4278067}], "GALL": [{"name": "Jakob Poeltl", "points": 150.0, "playerId": 3134908}, {"name": "Kristaps Porzingis", "points": 141.0, "playerId": 3102531}, {"name": "Precious Achiuwa", "points": 129.0, "playerId": 4431679}, {"name": "Bradley Beal", "points": 124.0, "playerId": 6580}, {"name": "Kyle Kuzma", "points": 121.0, "playerId": 3134907}]}, "17": {"NLH": [{"name": "Nikola Jokic", "points": 246.0, "playerId": 3112335}, {"name": "De'Aaron Fox", "points": 181.0, "playerId": 4066259}, {"name": "Devin Vassell", "points": 172.0, "playerId": 4395630}, {"name": "Michael Porter Jr.", "points": 170.0, "playerId": 4278104}, {"name": "Marvin Bagley III", "points": 158.0, "playerId": 4277848}], "SAM": [{"name": "Domantas Sabonis", "points": 270.0, "playerId": 3155942}, {"name": "Amen Thompson", "points": 198.0, "playerId": 4684740}, {"name": "Evan Mobley", "points": 198.0, "playerId": 4432158}, {"name": "Devin Booker", "points": 186.0, "playerId": 3136193}, {"name": "Dejounte Murray", "points": 176.0, "playerId": 3907497}], "SHOW": [{"name": "Anthony Davis", "points": 276.0, "playerId": 6583}, {"name": "Tyrese Maxey", "points": 219.0, "playerId": 4431678}, {"name": "Kyrie Irving", "points": 214.0, "playerId": 6442}, {"name": "Anthony Edwards", "points": 203.0, "playerId": 4594268}, {"name": "Collin Sexton", "points": 198.0, "playerId": 4277811}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 250.0, "playerId": 4278073}, {"name": "Chet Holmgren", "points": 208.0, "playerId": 4433255}, {"name": "Miles Bridges", "points": 206.0, "playerId": 4066383}, {"name": "Lauri Markkanen", "points": 177.0, "playerId": 4066336}, {"name": "Herbert Jones", "points": 145.0, "playerId": 4277813}], "TyPc": [{"name": "Tyrese Haliburton", "points": 206.0, "playerId": 4396993}, {"name": "James Harden", "points": 177.0, "playerId": 3992}, {"name": "Deandre Ayton", "points": 173.0, "playerId": 4278129}, {"name": "Klay Thompson", "points": 167.0, "playerId": 6475}, {"name": "Jalen Williams", "points": 158.0, "playerId": 4593803}], "DD ": [{"name": "Draymond Green", "points": 218.0, "playerId": 6589}, {"name": "Jayson Tatum", "points": 213.0, "playerId": 4065648}, {"name": "Tyus Jones", "points": 191.0, "playerId": 3135046}, {"name": "Scottie Barnes", "points": 173.0, "playerId": 4433134}, {"name": "Paolo Banchero", "points": 149.0, "playerId": 4432573}], "GALL": [{"name": "D'Angelo Russell", "points": 210.0, "playerId": 3136776}, {"name": "Damian Lillard", "points": 183.0, "playerId": 6606}, {"name": "Aaron Gordon", "points": 175.0, "playerId": 3064290}, {"name": "Jalen Brunson", "points": 173.0, "playerId": 3934672}, {"name": "Darius Garland", "points": 166.0, "playerId": 4396907}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 312.0, "playerId": 3032977}, {"name": "Kevin Durant", "points": 222.0, "playerId": 3202}, {"name": "Jarrett Allen", "points": 195.0, "playerId": 4066328}, {"name": "Karl-Anthony Towns", "points": 193.0, "playerId": 3136195}, {"name": "Austin Reaves", "points": 177.0, "playerId": 4066457}], "SOSA": [{"name": "Zion Williamson", "points": 237.0, "playerId": 4395628}, {"name": "LeBron James", "points": 171.0, "playerId": 1966}, {"name": "Brook Lopez", "points": 158.0, "playerId": 3448}, {"name": "Jonas Valanciunas", "points": 146.0, "playerId": 6477}, {"name": "Josh Giddey", "points": 108.0, "playerId": 4871145}], "MIDD": [{"name": "Victor Wembanyama", "points": 364.0, "playerId": 5104157}, {"name": "Luka Doncic", "points": 267.0, "playerId": 3945274}, {"name": "Bam Adebayo", "points": 151.0, "playerId": 4066261}, {"name": "Kawhi Leonard", "points": 146.0, "playerId": 6450}, {"name": "Donovan Mitchell", "points": 140.0, "playerId": 3908809}]}, "18": {"SAM": [{"name": "Evan Mobley", "points": 196.0, "playerId": 4432158}, {"name": "Dejounte Murray", "points": 136.0, "playerId": 3907497}, {"name": "Domantas Sabonis", "points": 133.0, "playerId": 3155942}, {"name": "Jalen Duren", "points": 126.0, "playerId": 4433621}, {"name": "Jamal Murray", "points": 119.0, "playerId": 3936299}], "SHOW": [{"name": "Anthony Davis", "points": 178.0, "playerId": 6583}, {"name": "Kyrie Irving", "points": 162.0, "playerId": 6442}, {"name": "Anthony Edwards", "points": 162.0, "playerId": 4594268}, {"name": "Derrick White", "points": 130.0, "playerId": 3078576}, {"name": "Keegan Murray", "points": 128.0, "playerId": 4594327}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 184.0, "playerId": 4278073}, {"name": "Miles Bridges", "points": 127.0, "playerId": 4066383}, {"name": "Chet Holmgren", "points": 122.0, "playerId": 4433255}, {"name": "Franz Wagner", "points": 100.0, "playerId": 4566434}, {"name": "Jabari Smith Jr.", "points": 98.0, "playerId": 4432639}], "TyPc": [{"name": "Rudy Gobert", "points": 159.0, "playerId": 3032976}, {"name": "Jalen Williams", "points": 141.0, "playerId": 4593803}, {"name": "Dennis Schroder", "points": 141.0, "playerId": 3032979}, {"name": "James Harden", "points": 135.0, "playerId": 3992}, {"name": "Tyrese Haliburton", "points": 103.0, "playerId": 4396993}], "DD ": [{"name": "Jayson Tatum", "points": 157.0, "playerId": 4065648}, {"name": "Scottie Barnes", "points": 140.0, "playerId": 4433134}, {"name": "Jonathan Kuminga", "points": 132.0, "playerId": 4433247}, {"name": "Tobias Harris", "points": 123.0, "playerId": 6440}, {"name": "Nikola Vucevic", "points": 123.0, "playerId": 6478}], "GALL": [{"name": "Josh Hart", "points": 199.0, "playerId": 3062679}, {"name": "Cade Cunningham", "points": 166.0, "playerId": 4432166}, {"name": "Jakob Poeltl", "points": 151.0, "playerId": 3134908}, {"name": "Kyle Kuzma", "points": 146.0, "playerId": 3134907}, {"name": "Darius Garland", "points": 133.0, "playerId": 4396907}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 171.0, "playerId": 3032977}, {"name": "Austin Reaves", "points": 118.0, "playerId": 4066457}, {"name": "Royce O'Neale", "points": 114.0, "playerId": 2583632}, {"name": "Jaime Jaquez Jr.", "points": 105.0, "playerId": 4432848}, {"name": "Fred VanVleet", "points": 102.0, "playerId": 2991230}], "SOSA": [{"name": "LeBron James", "points": 181.0, "playerId": 1966}, {"name": "Jalen Green", "points": 125.0, "playerId": 4437244}, {"name": "RJ Barrett", "points": 119.0, "playerId": 4395625}, {"name": "Caleb Martin", "points": 114.0, "playerId": 3138160}, {"name": "Stephen Curry", "points": 82.0, "playerId": 3975}], "MIDD": [{"name": "Luka Doncic", "points": 307.0, "playerId": 3945274}, {"name": "Victor Wembanyama", "points": 220.0, "playerId": 5104157}, {"name": "Immanuel Quickley", "points": 180.0, "playerId": 4395724}, {"name": "Donte DiVincenzo", "points": 161.0, "playerId": 3934673}, {"name": "Bam Adebayo", "points": 148.0, "playerId": 4066261}], "NLH": [{"name": "Nikola Jokic", "points": 172.0, "playerId": 3112335}, {"name": "Jaylen Brown", "points": 140.0, "playerId": 3917376}, {"name": "Trey Murphy III", "points": 136.0, "playerId": 4397688}, {"name": "Marvin Bagley III", "points": 113.0, "playerId": 4277848}, {"name": "Devin Vassell", "points": 111.0, "playerId": 4395630}]}, "19": {"TyPc": [{"name": "Dennis Schroder", "points": 193.0, "playerId": 3032979}, {"name": "James Harden", "points": 169.0, "playerId": 3992}, {"name": "Rudy Gobert", "points": 143.0, "playerId": 3032976}, {"name": "Tyrese Haliburton", "points": 134.0, "playerId": 4396993}, {"name": "Deni Avdija", "points": 131.0, "playerId": 4683021}], "SAM": [{"name": "Domantas Sabonis", "points": 243.0, "playerId": 3155942}, {"name": "Dejounte Murray", "points": 194.0, "playerId": 3907497}, {"name": "Anfernee Simons", "points": 179.0, "playerId": 4351851}, {"name": "Jamal Murray", "points": 157.0, "playerId": 3936299}, {"name": "Paul Reed", "points": 154.0, "playerId": 4278562}], "GALL": [{"name": "Damian Lillard", "points": 220.0, "playerId": 6606}, {"name": "Coby White", "points": 187.0, "playerId": 4395651}, {"name": "Kyle Kuzma", "points": 186.0, "playerId": 3134907}, {"name": "D'Angelo Russell", "points": 178.0, "playerId": 3136776}, {"name": "Cade Cunningham", "points": 147.0, "playerId": 4432166}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 208.0, "playerId": 4278073}, {"name": "Naz Reid", "points": 163.0, "playerId": 4396971}, {"name": "Paul George", "points": 142.0, "playerId": 4251}, {"name": "Isaac Okoro", "points": 124.0, "playerId": 4432822}, {"name": "Jaren Jackson Jr.", "points": 118.0, "playerId": 4277961}], "SOSA": [{"name": "LeBron James", "points": 160.0, "playerId": 1966}, {"name": "Josh Giddey", "points": 144.0, "playerId": 4871145}, {"name": "John Collins", "points": 134.0, "playerId": 3908845}, {"name": "Jalen Green", "points": 128.0, "playerId": 4437244}, {"name": "Caleb Martin", "points": 95.0, "playerId": 3138160}], "DD ": [{"name": "Mikal Bridges", "points": 159.0, "playerId": 3147657}, {"name": "Nikola Vucevic", "points": 157.0, "playerId": 6478}, {"name": "Paolo Banchero", "points": 149.0, "playerId": 4432573}, {"name": "Tyus Jones", "points": 147.0, "playerId": 3135046}, {"name": "Kelly Oubre Jr.", "points": 126.0, "playerId": 3133603}], "NLH": [{"name": "De'Aaron Fox", "points": 188.0, "playerId": 4066259}, {"name": "Nikola Jokic", "points": 178.0, "playerId": 3112335}, {"name": "Bogdan Bogdanovic", "points": 142.0, "playerId": 3037789}, {"name": "Jaylen Brown", "points": 133.0, "playerId": 3917376}, {"name": "Trey Murphy III", "points": 129.0, "playerId": 4397688}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 175.0, "playerId": 3032977}, {"name": "Jordan Poole", "points": 150.0, "playerId": 4277956}, {"name": "Jaime Jaquez Jr.", "points": 134.0, "playerId": 4432848}, {"name": "Fred VanVleet", "points": 132.0, "playerId": 2991230}, {"name": "Clint Capela", "points": 121.0, "playerId": 3102529}], "SHOW": [{"name": "Alperen Sengun", "points": 233.0, "playerId": 4871144}, {"name": "Anthony Edwards", "points": 168.0, "playerId": 4594268}, {"name": "Jimmy Butler", "points": 154.0, "playerId": 6430}, {"name": "Anthony Davis", "points": 150.0, "playerId": 6583}, {"name": "Grayson Allen", "points": 120.0, "playerId": 3135045}], "MIDD": [{"name": "Luka Doncic", "points": 217.0, "playerId": 3945274}, {"name": "Nic Claxton", "points": 198.0, "playerId": 4278067}, {"name": "Malik Monk", "points": 156.0, "playerId": 4066262}, {"name": "Immanuel Quickley", "points": 147.0, "playerId": 4395724}, {"name": "Kawhi Leonard", "points": 140.0, "playerId": 6450}]}, "20": {"SAM": [{"name": "Jamal Murray", "points": 182.0, "playerId": 3936299}, {"name": "Devin Booker", "points": 181.0, "playerId": 3136193}, {"name": "Dejounte Murray", "points": 162.0, "playerId": 3907497}, {"name": "Domantas Sabonis", "points": 157.0, "playerId": 3155942}, {"name": "Jalen Duren", "points": 150.0, "playerId": 4433621}], "GALL": [{"name": "Bradley Beal", "points": 184.0, "playerId": 6580}, {"name": "Jalen Brunson", "points": 167.0, "playerId": 3934672}, {"name": "Darius Garland", "points": 146.0, "playerId": 4396907}, {"name": "Damian Lillard", "points": 138.0, "playerId": 6606}, {"name": "Cade Cunningham", "points": 134.0, "playerId": 4432166}], "BALL": [{"name": "Paul George", "points": 198.0, "playerId": 4251}, {"name": "Shai Gilgeous-Alexander", "points": 136.0, "playerId": 4278073}, {"name": "Chet Holmgren", "points": 130.0, "playerId": 4433255}, {"name": "Miles Bridges", "points": 117.0, "playerId": 4066383}, {"name": "Nick Richards", "points": 90.0, "playerId": 4278076}], "SOSA": [{"name": "Jalen Green", "points": 134.0, "playerId": 4437244}, {"name": "LeBron James", "points": 118.0, "playerId": 1966}, {"name": "Brook Lopez", "points": 91.0, "playerId": 3448}, {"name": "Josh Giddey", "points": 83.0, "playerId": 4871145}, {"name": "Caleb Martin", "points": 76.0, "playerId": 3138160}], "DD ": [{"name": "Tre Jones", "points": 148.0, "playerId": 4395626}, {"name": "Nikola Vucevic", "points": 136.0, "playerId": 6478}, {"name": "CJ McCollum", "points": 100.0, "playerId": 2490149}, {"name": "Jonathan Kuminga", "points": 95.0, "playerId": 4433247}, {"name": "Jayson Tatum", "points": 91.0, "playerId": 4065648}], "NLH": [{"name": "Nikola Jokic", "points": 238.0, "playerId": 3112335}, {"name": "Michael Porter Jr.", "points": 160.0, "playerId": 4278104}, {"name": "Pascal Siakam", "points": 149.0, "playerId": 3149673}, {"name": "De'Aaron Fox", "points": 138.0, "playerId": 4066259}, {"name": "Jeremy Sochan", "points": 138.0, "playerId": 4610139}], "BEER": [{"name": "Fred VanVleet", "points": 161.0, "playerId": 2991230}, {"name": "Kevin Durant", "points": 153.0, "playerId": 3202}, {"name": "Jordan Poole", "points": 130.0, "playerId": 4277956}, {"name": "Clint Capela", "points": 115.0, "playerId": 3102529}, {"name": "Giannis Antetokounmpo", "points": 95.0, "playerId": 3032977}], "SHOW": [{"name": "Kyrie Irving", "points": 215.0, "playerId": 6442}, {"name": "Grayson Allen", "points": 155.0, "playerId": 3135045}, {"name": "Derrick White", "points": 137.0, "playerId": 3078576}, {"name": "Anthony Edwards", "points": 129.0, "playerId": 4594268}, {"name": "Myles Turner", "points": 128.0, "playerId": 3133628}], "MIDD": [{"name": "Victor Wembanyama", "points": 210.0, "playerId": 5104157}, {"name": "Daniel Gafford", "points": 166.0, "playerId": 4278049}, {"name": "Bam Adebayo", "points": 148.0, "playerId": 4066261}, {"name": "Kawhi Leonard", "points": 139.0, "playerId": 6450}, {"name": "Brandon Ingram", "points": 120.0, "playerId": 3913176}], "TyPc": [{"name": "Deandre Ayton", "points": 194.0, "playerId": 4278129}, {"name": "Tyrese Haliburton", "points": 137.0, "playerId": 4396993}, {"name": "Jalen Williams", "points": 106.0, "playerId": 4593803}, {"name": "Ivica Zubac", "points": 79.0, "playerId": 4017837}, {"name": "Deni Avdija", "points": 72.0, "playerId": 4683021}]}, "21": {"SOSA": [{"name": "Jalen Green", "points": 178.0, "playerId": 4437244}, {"name": "Stephen Curry", "points": 148.0, "playerId": 3975}, {"name": "LeBron James", "points": 134.0, "playerId": 1966}, {"name": "Josh Giddey", "points": 105.0, "playerId": 4871145}, {"name": "Brook Lopez", "points": 80.0, "playerId": 3448}], "SAM": [{"name": "Domantas Sabonis", "points": 185.0, "playerId": 3155942}, {"name": "Dejounte Murray", "points": 183.0, "playerId": 3907497}, {"name": "Devin Booker", "points": 157.0, "playerId": 3136193}, {"name": "Ayo Dosunmu", "points": 137.0, "playerId": 4397002}, {"name": "Paul Reed", "points": 95.0, "playerId": 4278562}], "NLH": [{"name": "De'Aaron Fox", "points": 204.0, "playerId": 4066259}, {"name": "Pascal Siakam", "points": 138.0, "playerId": 3149673}, {"name": "Jaylen Brown", "points": 128.0, "playerId": 3917376}, {"name": "Nikola Jokic", "points": 124.0, "playerId": 3112335}, {"name": "GG Jackson", "points": 113.0, "playerId": 5105550}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 136.0, "playerId": 4278073}, {"name": "Paul George", "points": 126.0, "playerId": 4251}, {"name": "Jaren Jackson Jr.", "points": 122.0, "playerId": 4277961}, {"name": "Chet Holmgren", "points": 119.0, "playerId": 4433255}, {"name": "Naz Reid", "points": 98.0, "playerId": 4396971}], "SHOW": [{"name": "Derrick White", "points": 196.0, "playerId": 3078576}, {"name": "Collin Sexton", "points": 154.0, "playerId": 4277811}, {"name": "Myles Turner", "points": 123.0, "playerId": 3133628}, {"name": "Grayson Allen", "points": 116.0, "playerId": 3135045}, {"name": "Keegan Murray", "points": 108.0, "playerId": 4594327}], "DD ": [{"name": "Kelly Oubre Jr.", "points": 171.0, "playerId": 3133603}, {"name": "CJ McCollum", "points": 154.0, "playerId": 2490149}, {"name": "Nikola Vucevic", "points": 122.0, "playerId": 6478}, {"name": "Draymond Green", "points": 120.0, "playerId": 6589}, {"name": "Jonathan Kuminga", "points": 119.0, "playerId": 4433247}], "TyPc": [{"name": "Tyrese Haliburton", "points": 163.0, "playerId": 4396993}, {"name": "James Harden", "points": 142.0, "playerId": 3992}, {"name": "Jalen Williams", "points": 109.0, "playerId": 4593803}, {"name": "Deni Avdija", "points": 74.0, "playerId": 4683021}, {"name": "Klay Thompson", "points": 67.0, "playerId": 6475}], "BEER": [{"name": "Fred VanVleet", "points": 148.0, "playerId": 2991230}, {"name": "Kevin Durant", "points": 130.0, "playerId": 3202}, {"name": "Jarrett Allen", "points": 109.0, "playerId": 4066328}, {"name": "Giannis Antetokounmpo", "points": 103.0, "playerId": 3032977}, {"name": "T.J. McConnell", "points": 96.0, "playerId": 2530530}], "GALL": [{"name": "Trayce Jackson-Davis", "points": 142.0, "playerId": 4431684}, {"name": "Damian Lillard", "points": 140.0, "playerId": 6606}, {"name": "Jalen Brunson", "points": 130.0, "playerId": 3934672}, {"name": "Kristaps Porzingis", "points": 103.0, "playerId": 3102531}, {"name": "Aaron Gordon", "points": 101.0, "playerId": 3064290}], "MIDD": [{"name": "Bam Adebayo", "points": 135.0, "playerId": 4066261}, {"name": "Chris Paul", "points": 125.0, "playerId": 2779}, {"name": "Donte DiVincenzo", "points": 124.0, "playerId": 3934673}, {"name": "Victor Wembanyama", "points": 123.0, "playerId": 5104157}, {"name": "Kawhi Leonard", "points": 113.0, "playerId": 6450}]}, "22": {"MIDD": [{"name": "Victor Wembanyama", "points": 197.0, "playerId": 5104157}, {"name": "Kawhi Leonard", "points": 187.0, "playerId": 6450}, {"name": "Donte DiVincenzo", "points": 178.0, "playerId": 3934673}, {"name": "Nic Claxton", "points": 143.0, "playerId": 4278067}, {"name": "Luka Doncic", "points": 120.0, "playerId": 3945274}], "GALL": [{"name": "Jalen Brunson", "points": 222.0, "playerId": 3934672}, {"name": "D'Angelo Russell", "points": 157.0, "playerId": 3136776}, {"name": "Josh Hart", "points": 148.0, "playerId": 3062679}, {"name": "Darius Garland", "points": 128.0, "playerId": 4396907}, {"name": "Kristaps Porzingis", "points": 125.0, "playerId": 3102531}], "NLH": [{"name": "Nikola Jokic", "points": 260.0, "playerId": 3112335}, {"name": "De'Aaron Fox", "points": 186.0, "playerId": 4066259}, {"name": "Bogdan Bogdanovic", "points": 179.0, "playerId": 3037789}, {"name": "Amen Thompson", "points": 149.0, "playerId": 4684740}, {"name": "Devin Vassell", "points": 146.0, "playerId": 4395630}], "SAM": [{"name": "Dejounte Murray", "points": 236.0, "playerId": 3907497}, {"name": "Domantas Sabonis", "points": 153.0, "playerId": 3155942}, {"name": "Brandon Miller", "points": 141.0, "playerId": 4433287}, {"name": "Evan Mobley", "points": 125.0, "playerId": 4432158}, {"name": "Ayo Dosunmu", "points": 118.0, "playerId": 4397002}], "BALL": [{"name": "Paul George", "points": 184.0, "playerId": 4251}, {"name": "Miles Bridges", "points": 141.0, "playerId": 4066383}, {"name": "Dalano Banton", "points": 127.0, "playerId": 4397885}, {"name": "Herbert Jones", "points": 115.0, "playerId": 4277813}, {"name": "Lauri Markkanen", "points": 93.0, "playerId": 4066336}], "DD ": [{"name": "Tobias Harris", "points": 136.0, "playerId": 6440}, {"name": "Draymond Green", "points": 134.0, "playerId": 6589}, {"name": "CJ McCollum", "points": 127.0, "playerId": 2490149}, {"name": "Tre Jones", "points": 87.0, "playerId": 4395626}, {"name": "Kelly Oubre Jr.", "points": 86.0, "playerId": 3133603}], "SHOW": [{"name": "Anthony Davis", "points": 160.0, "playerId": 6583}, {"name": "Kyrie Irving", "points": 140.0, "playerId": 6442}, {"name": "Keegan Murray", "points": 140.0, "playerId": 4594327}, {"name": "Tyrese Maxey", "points": 127.0, "playerId": 4431678}, {"name": "Rui Hachimura", "points": 112.0, "playerId": 4066648}], "TyPc": [{"name": "Jalen Williams", "points": 163.0, "playerId": 4593803}, {"name": "James Harden", "points": 151.0, "playerId": 3992}, {"name": "Rudy Gobert", "points": 133.0, "playerId": 3032976}, {"name": "Deni Avdija", "points": 108.0, "playerId": 4683021}, {"name": "De'Andre Hunter", "points": 106.0, "playerId": 4065732}], "BEER": [{"name": "Giannis Antetokounmpo", "points": 207.0, "playerId": 3032977}, {"name": "Austin Reaves", "points": 167.0, "playerId": 4066457}, {"name": "Clint Capela", "points": 159.0, "playerId": 3102529}, {"name": "Fred VanVleet", "points": 153.0, "playerId": 2991230}, {"name": "Jarrett Allen", "points": 147.0, "playerId": 4066328}], "SOSA": [{"name": "Josh Giddey", "points": 215.0, "playerId": 4871145}, {"name": "Jalen Green", "points": 192.0, "playerId": 4437244}, {"name": "Stephen Curry", "points": 155.0, "playerId": 3975}, {"name": "LeBron James", "points": 153.0, "playerId": 1966}, {"name": "John Collins", "points": 136.0, "playerId": 3908845}]}, "23": {"MIDD": [{"name": "Victor Wembanyama", "points": 217.0, "playerId": 5104157}, {"name": "Luka Doncic", "points": 181.0, "playerId": 3945274}, {"name": "Donte DiVincenzo", "points": 161.0, "playerId": 3934673}, {"name": "Immanuel Quickley", "points": 152.0, "playerId": 4395724}, {"name": "Bam Adebayo", "points": 147.0, "playerId": 4066261}], "NLH": [{"name": "Nikola Jokic", "points": 202.0, "playerId": 3112335}, {"name": "De'Aaron Fox", "points": 188.0, "playerId": 4066259}, {"name": "Bogdan Bogdanovic", "points": 135.0, "playerId": 3037789}, {"name": "Isaiah Hartenstein", "points": 132.0, "playerId": 4222252}, {"name": "Ivica Zubac", "points": 132.0, "playerId": 4017837}], "DD ": [{"name": "CJ McCollum", "points": 180.0, "playerId": 2490149}, {"name": "Paolo Banchero", "points": 153.0, "playerId": 4432573}, {"name": "Grant Williams", "points": 151.0, "playerId": 4066218}, {"name": "Kelly Oubre Jr.", "points": 126.0, "playerId": 3133603}, {"name": "Wendell Carter Jr.", "points": 121.0, "playerId": 4277847}], "SAM": [{"name": "Devin Booker", "points": 221.0, "playerId": 3136193}, {"name": "Domantas Sabonis", "points": 197.0, "playerId": 3155942}, {"name": "Evan Mobley", "points": 153.0, "playerId": 4432158}, {"name": "Brandon Miller", "points": 148.0, "playerId": 4433287}, {"name": "Dejounte Murray", "points": 132.0, "playerId": 3907497}], "GALL": [{"name": "Kristaps Porzingis", "points": 225.0, "playerId": 3102531}, {"name": "Jalen Brunson", "points": 215.0, "playerId": 3934672}, {"name": "Darius Garland", "points": 170.0, "playerId": 4396907}, {"name": "Bradley Beal", "points": 160.0, "playerId": 6580}, {"name": "D'Angelo Russell", "points": 154.0, "playerId": 3136776}], "BALL": [{"name": "Naz Reid", "points": 181.0, "playerId": 4396971}, {"name": "Paul George", "points": 155.0, "playerId": 4251}, {"name": "Chet Holmgren", "points": 126.0, "playerId": 4433255}, {"name": "Miles Bridges", "points": 121.0, "playerId": 4066383}, {"name": "Miles McBride", "points": 112.0, "playerId": 4431823}], "TyPc": [{"name": "Deni Avdija", "points": 166.0, "playerId": 4683021}, {"name": "Tyrese Haliburton", "points": 164.0, "playerId": 4396993}, {"name": "Rudy Gobert", "points": 132.0, "playerId": 3032976}, {"name": "Dennis Schroder", "points": 89.0, "playerId": 3032979}, {"name": "James Harden", "points": 88.0, "playerId": 3992}], "BEER": [{"name": "Jordan Poole", "points": 193.0, "playerId": 4277956}, {"name": "Giannis Antetokounmpo", "points": 188.0, "playerId": 3032977}, {"name": "Fred VanVleet", "points": 178.0, "playerId": 2991230}, {"name": "Kevin Durant", "points": 169.0, "playerId": 3202}, {"name": "T.J. McConnell", "points": 139.0, "playerId": 2530530}], "SHOW": [{"name": "Anthony Davis", "points": 195.0, "playerId": 6583}, {"name": "Kyrie Irving", "points": 192.0, "playerId": 6442}, {"name": "P.J. Washington", "points": 192.0, "playerId": 4278078}, {"name": "Tyrese Maxey", "points": 176.0, "playerId": 4431678}, {"name": "Anthony Edwards", "points": 155.0, "playerId": 4594268}], "SOSA": [{"name": "LeBron James", "points": 153.0, "playerId": 1966}, {"name": "Jalen Green", "points": 140.0, "playerId": 4437244}, {"name": "Josh Giddey", "points": 134.0, "playerId": 4871145}, {"name": "Stephen Curry", "points": 123.0, "playerId": 3975}, {"name": "RJ Barrett", "points": 118.0, "playerId": 4395625}]}, "24": {"SAM": [{"name": "Jamal Murray", "points": 202.0, "playerId": 3936299}, {"name": "Domantas Sabonis", "points": 160.0, "playerId": 3155942}, {"name": "Devin Booker", "points": 149.0, "playerId": 3136193}, {"name": "Tyler Herro", "points": 134.0, "playerId": 4395725}, {"name": "Dejounte Murray", "points": 134.0, "playerId": 3907497}], "NLH": [{"name": "Nikola Jokic", "points": 265.0, "playerId": 3112335}, {"name": "De'Aaron Fox", "points": 216.0, "playerId": 4066259}, {"name": "Trey Murphy III", "points": 181.0, "playerId": 4397688}, {"name": "Amen Thompson", "points": 150.0, "playerId": 4684740}, {"name": "Scotty Pippen Jr.", "points": 123.0, "playerId": 4431785}], "MIDD": [{"name": "GG Jackson", "points": 161.0, "playerId": 5105550}, {"name": "Donte DiVincenzo", "points": 148.0, "playerId": 3934673}, {"name": "Donovan Mitchell", "points": 126.0, "playerId": 3908809}, {"name": "Luka Doncic", "points": 122.0, "playerId": 3945274}, {"name": "Bam Adebayo", "points": 120.0, "playerId": 4066261}], "DD ": [{"name": "CJ McCollum", "points": 213.0, "playerId": 2490149}, {"name": "Nikola Vucevic", "points": 158.0, "playerId": 6478}, {"name": "Paolo Banchero", "points": 145.0, "playerId": 4432573}, {"name": "Tre Jones", "points": 135.0, "playerId": 4395626}, {"name": "Tobias Harris", "points": 121.0, "playerId": 6440}], "GALL": [{"name": "Jalen Brunson", "points": 238.0, "playerId": 3934672}, {"name": "Bradley Beal", "points": 214.0, "playerId": 6580}, {"name": "Josh Hart", "points": 168.0, "playerId": 3062679}, {"name": "Joel Embiid", "points": 134.0, "playerId": 3059318}, {"name": "Corey Kispert", "points": 114.0, "playerId": 4280151}], "BALL": [{"name": "Shai Gilgeous-Alexander", "points": 163.0, "playerId": 4278073}, {"name": "Chet Holmgren", "points": 147.0, "playerId": 4433255}, {"name": "Naz Reid", "points": 76.0, "playerId": 4396971}, {"name": "Miles Bridges", "points": 74.0, "playerId": 4066383}, {"name": "Andrew Nembhard", "points": 73.0, "playerId": 4395712}], "SHOW": [{"name": "Anthony Edwards", "points": 158.0, "playerId": 4594268}, {"name": "Jimmy Butler", "points": 141.0, "playerId": 6430}, {"name": "Keegan Murray", "points": 132.0, "playerId": 4594327}, {"name": "Myles Turner", "points": 126.0, "playerId": 3133628}, {"name": "Anthony Davis", "points": 119.0, "playerId": 6583}], "BEER": [{"name": "Fred VanVleet", "points": 143.0, "playerId": 2991230}, {"name": "Kevin Durant", "points": 133.0, "playerId": 3202}, {"name": "T.J. McConnell", "points": 114.0, "playerId": 2530530}, {"name": "Jaime Jaquez Jr.", "points": 112.0, "playerId": 4432848}, {"name": "Royce O'Neale", "points": 109.0, "playerId": 2583632}], "TyPc": [{"name": "Rudy Gobert", "points": 221.0, "playerId": 3032976}, {"name": "Jalen Williams", "points": 115.0, "playerId": 4593803}, {"name": "Deni Avdija", "points": 88.0, "playerId": 4683021}, {"name": "Klay Thompson", "points": 76.0, "playerId": 6475}, {"name": "De'Andre Hunter", "points": 67.0, "playerId": 4065732}], "SOSA": [{"name": "LeBron James", "points": 213.0, "playerId": 1966}, {"name": "Stephen Curry", "points": 163.0, "playerId": 3975}, {"name": "Brook Lopez", "points": 118.0, "playerId": 3448}, {"name": "Caleb Martin", "points": 91.0, "playerId": 3138160}, {"name": "Josh Giddey", "points": 85.0, "playerId": 4871145}]}}};
+        const topTeamByWeek = {"weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], "top_teams": {"1": {"team": "SHOW", "points": 1399.0}, "2": {"team": "DD ", "points": 1730.0}, "3": {"team": "SHOW", "points": 1694.0}, "4": {"team": "GALL", "points": 1694.0}, "5": {"team": "BEER", "points": 1637.0}, "6": {"team": "TyPc", "points": 1707.0}, "7": {"team": "TyPc", "points": 963.0}, "8": {"team": "GALL", "points": 1951.0}, "9": {"team": "NLH", "points": 1803.0}, "10": {"team": "TyPc", "points": 1910.0}, "11": {"team": "NLH", "points": 1820.0}, "12": {"team": "BALL", "points": 1849.0}, "13": {"team": "GALL", "points": 1632.0}, "14": {"team": "SAM", "points": 1777.0}, "15": {"team": "MIDD", "points": 1904.0}, "16": {"team": "MIDD", "points": 1900.0}, "17": {"team": "BEER", "points": 2216.0}, "18": {"team": "MIDD", "points": 2086.0}, "19": {"team": "GALL", "points": 1868.0}, "20": {"team": "SAM", "points": 1828.0}, "21": {"team": "NLH", "points": 1545.0}, "22": {"team": "NLH", "points": 1843.0}, "23": {"team": "NLH", "points": 1790.0}, "24": {"team": "NLH", "points": 1569.0}}};
+        const topPlayersByWeek = {"weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], "top_players": {"1": [{"name": "Joel Embiid", "points": 195.0, "playerId": 3059318, "team": "GALL"}, {"name": "Anthony Davis", "points": 172.0, "playerId": 6583, "team": "SHOW"}, {"name": "Tyrese Maxey", "points": 167.0, "playerId": 4431678, "team": "SHOW"}], "2": [{"name": "Nikola Jokic", "points": 254.0, "playerId": 3112335, "team": "NLH"}, {"name": "Scottie Barnes", "points": 211.0, "playerId": 4433134, "team": "DD "}, {"name": "Donovan Mitchell", "points": 210.0, "playerId": 3908809, "team": "MIDD"}], "3": [{"name": "Tyrese Maxey", "points": 273.0, "playerId": 4431678, "team": "SHOW"}, {"name": "Shai Gilgeous-Alexander", "points": 255.0, "playerId": 4278073, "team": "BALL"}, {"name": "Joel Embiid", "points": 249.0, "playerId": 3059318, "team": "GALL"}], "4": [{"name": "LeBron James", "points": 254.0, "playerId": 1966, "team": "SOSA"}, {"name": "Domantas Sabonis", "points": 250.0, "playerId": 3155942, "team": "SAM"}, {"name": "Shai Gilgeous-Alexander", "points": 242.0, "playerId": 4278073, "team": "BALL"}], "5": [{"name": "Nikola Jokic", "points": 261.0, "playerId": 3112335, "team": "NLH"}, {"name": "Trae Young", "points": 242.0, "playerId": 4277905, "team": "TyPc"}, {"name": "Giannis Antetokounmpo", "points": 238.0, "playerId": 3032977, "team": "BEER"}], "6": [{"name": "Nikola Jokic", "points": 232.0, "playerId": 3112335, "team": "NLH"}, {"name": "Anthony Davis", "points": 223.0, "playerId": 6583, "team": "SHOW"}, {"name": "Giannis Antetokounmpo", "points": 210.0, "playerId": 3032977, "team": "BEER"}], "7": [{"name": "Joel Embiid", "points": 154.0, "playerId": 3059318, "team": "GALL"}, {"name": "Shai Gilgeous-Alexander", "points": 152.0, "playerId": 4278073, "team": "BALL"}, {"name": "Tyrese Haliburton", "points": 147.0, "playerId": 4396993, "team": "TyPc"}], "8": [{"name": "Joel Embiid", "points": 284.0, "playerId": 3059318, "team": "GALL"}, {"name": "Luka Doncic", "points": 276.0, "playerId": 3945274, "team": "MIDD"}, {"name": "Kawhi Leonard", "points": 240.0, "playerId": 6450, "team": "MIDD"}], "9": [{"name": "Trae Young", "points": 244.0, "playerId": 4277905, "team": "TyPc"}, {"name": "Nikola Jokic", "points": 235.0, "playerId": 3112335, "team": "NLH"}, {"name": "Anthony Davis", "points": 229.0, "playerId": 6583, "team": "SHOW"}], "10": [{"name": "Anthony Davis", "points": 265.0, "playerId": 6583, "team": "SHOW"}, {"name": "Luka Doncic", "points": 253.0, "playerId": 3945274, "team": "MIDD"}, {"name": "Tyrese Haliburton", "points": 228.0, "playerId": 4396993, "team": "TyPc"}], "11": [{"name": "Tyrese Haliburton", "points": 250.0, "playerId": 4396993, "team": "TyPc"}, {"name": "Nikola Jokic", "points": 244.0, "playerId": 3112335, "team": "NLH"}, {"name": "Giannis Antetokounmpo", "points": 226.0, "playerId": 3032977, "team": "BEER"}], "12": [{"name": "Shai Gilgeous-Alexander", "points": 247.0, "playerId": 4278073, "team": "BALL"}, {"name": "Domantas Sabonis", "points": 245.0, "playerId": 3155942, "team": "SAM"}, {"name": "Kawhi Leonard", "points": 213.0, "playerId": 6450, "team": "MIDD"}], "13": [{"name": "Joel Embiid", "points": 255.0, "playerId": 3059318, "team": "GALL"}, {"name": "Anthony Davis", "points": 235.0, "playerId": 6583, "team": "SHOW"}, {"name": "Nikola Jokic", "points": 209.0, "playerId": 3112335, "team": "NLH"}], "14": [{"name": "Luka Doncic", "points": 316.0, "playerId": 3945274, "team": "MIDD"}, {"name": "Giannis Antetokounmpo", "points": 269.0, "playerId": 3032977, "team": "BEER"}, {"name": "Devin Booker", "points": 266.0, "playerId": 3136193, "team": "SAM"}], "15": [{"name": "Shai Gilgeous-Alexander", "points": 284.0, "playerId": 4278073, "team": "BALL"}, {"name": "Donovan Mitchell", "points": 258.0, "playerId": 3908809, "team": "MIDD"}, {"name": "Kawhi Leonard", "points": 242.0, "playerId": 6450, "team": "MIDD"}], "16": [{"name": "Luka Doncic", "points": 257.0, "playerId": 3945274, "team": "MIDD"}, {"name": "Domantas Sabonis", "points": 233.0, "playerId": 3155942, "team": "SAM"}, {"name": "Donovan Mitchell", "points": 217.0, "playerId": 3908809, "team": "MIDD"}], "17": [{"name": "Victor Wembanyama", "points": 364.0, "playerId": 5104157, "team": "MIDD"}, {"name": "Giannis Antetokounmpo", "points": 312.0, "playerId": 3032977, "team": "BEER"}, {"name": "Anthony Davis", "points": 276.0, "playerId": 6583, "team": "SHOW"}], "18": [{"name": "Luka Doncic", "points": 307.0, "playerId": 3945274, "team": "MIDD"}, {"name": "Victor Wembanyama", "points": 220.0, "playerId": 5104157, "team": "MIDD"}, {"name": "Josh Hart", "points": 199.0, "playerId": 3062679, "team": "GALL"}], "19": [{"name": "Domantas Sabonis", "points": 243.0, "playerId": 3155942, "team": "SAM"}, {"name": "Alperen Sengun", "points": 233.0, "playerId": 4871144, "team": "SHOW"}, {"name": "Damian Lillard", "points": 220.0, "playerId": 6606, "team": "GALL"}], "20": [{"name": "Nikola Jokic", "points": 238.0, "playerId": 3112335, "team": "NLH"}, {"name": "Kyrie Irving", "points": 215.0, "playerId": 6442, "team": "SHOW"}, {"name": "Victor Wembanyama", "points": 210.0, "playerId": 5104157, "team": "MIDD"}], "21": [{"name": "De'Aaron Fox", "points": 204.0, "playerId": 4066259, "team": "NLH"}, {"name": "Derrick White", "points": 196.0, "playerId": 3078576, "team": "SHOW"}, {"name": "Domantas Sabonis", "points": 185.0, "playerId": 3155942, "team": "SAM"}], "22": [{"name": "Nikola Jokic", "points": 260.0, "playerId": 3112335, "team": "NLH"}, {"name": "Dejounte Murray", "points": 236.0, "playerId": 3907497, "team": "SAM"}, {"name": "Jalen Brunson", "points": 222.0, "playerId": 3934672, "team": "GALL"}], "23": [{"name": "Kristaps Porzingis", "points": 225.0, "playerId": 3102531, "team": "GALL"}, {"name": "Devin Booker", "points": 221.0, "playerId": 3136193, "team": "SAM"}, {"name": "Victor Wembanyama", "points": 217.0, "playerId": 5104157, "team": "MIDD"}], "24": [{"name": "Nikola Jokic", "points": 265.0, "playerId": 3112335, "team": "NLH"}, {"name": "Jalen Brunson", "points": 238.0, "playerId": 3934672, "team": "GALL"}, {"name": "Rudy Gobert", "points": 221.0, "playerId": 3032976, "team": "TyPc"}]}};
+        const topPlayerPerformances = {"top_performances": [{"name": "Victor Wembanyama", "playerId": 5104157, "points": 364.0, "week": 17, "team": "MIDD"}, {"name": "Luka Doncic", "playerId": 3945274, "points": 316.0, "week": 14, "team": "MIDD"}, {"name": "Giannis Antetokounmpo", "playerId": 3032977, "points": 312.0, "week": 17, "team": "BEER"}]};
+        const allPlayRecords = {"weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], "teams": {"GALL": {"weekly_wins": [8, 4, 7, 9, 2, 5, 8, 9, 6, 2, 4, 3, 9, 2, 6, 5, 8, 8, 9, 6, 3, 8, 8, 7], "weekly_losses": [1, 5, 2, 0, 7, 4, 1, 0, 3, 7, 5, 6, 0, 7, 3, 4, 1, 1, 0, 3, 6, 1, 1, 2], "cumulative_wins": 146, "cumulative_losses": 70, "win_percentage": 0.6759259259259259}, "SAM": {"weekly_wins": [2, 3, 0, 1, 3, 2, 0, 0, 8, 6, 7, 6, 8, 9, 7, 8, 6, 7, 7, 9, 5, 7, 6, 8], "weekly_losses": [7, 6, 9, 8, 6, 7, 9, 9, 1, 3, 2, 3, 1, 0, 2, 1, 3, 2, 2, 0, 4, 2, 3, 1], "cumulative_wins": 125, "cumulative_losses": 91, "win_percentage": 0.5787037037037037}, "NLH": {"weekly_wins": [0, 8, 3, 3, 4, 8, 7, 6, 9, 5, 9, 5, 0, 1, 5, 0, 1, 4, 2, 7, 9, 9, 9, 9], "weekly_losses": [9, 1, 6, 6, 5, 1, 2, 3, 0, 4, 0, 4, 9, 8, 4, 9, 8, 5, 7, 2, 0, 0, 0, 0], "cumulative_wins": 123, "cumulative_losses": 93, "win_percentage": 0.5694444444444444}, "BEER": {"weekly_wins": [1, 0, 1, 5, 9, 3, 3, 4, 2, 0, 2, 0, 1, 4, 3, 1, 9, 1, 1, 4, 4, 6, 3, 3], "weekly_losses": [8, 9, 8, 4, 0, 6, 6, 5, 7, 9, 7, 9, 8, 5, 6, 8, 0, 8, 8, 5, 5, 3, 6, 6], "cumulative_wins": 70, "cumulative_losses": 146, "win_percentage": 0.32407407407407407}, "SHOW": {"weekly_wins": [9, 2, 9, 6, 0, 0, 5, 3, 7, 8, 8, 7, 6, 0, 1, 3, 7, 6, 6, 5, 7, 2, 5, 4], "weekly_losses": [0, 7, 0, 3, 9, 9, 4, 6, 2, 1, 1, 2, 3, 9, 8, 6, 2, 3, 3, 4, 2, 7, 4, 5], "cumulative_wins": 116, "cumulative_losses": 100, "win_percentage": 0.5370370370370371}, "MIDD": {"weekly_wins": [7, 5, 5, 0, 7, 7, 1, 8, 1, 4, 5, 1, 3, 8, 9, 9, 4, 9, 8, 8, 8, 5, 7, 6], "weekly_losses": [2, 4, 4, 9, 2, 2, 8, 1, 8, 5, 4, 8, 6, 1, 0, 0, 5, 0, 1, 1, 1, 4, 2, 3], "cumulative_wins": 135, "cumulative_losses": 81, "win_percentage": 0.625}, "TyPc": {"weekly_wins": [5, 6, 8, 8, 8, 9, 9, 5, 4, 9, 6, 8, 5, 5, 0, 2, 3, 2, 4, 2, 0, 3, 0, 0], "weekly_losses": [4, 3, 1, 1, 1, 0, 0, 4, 5, 0, 3, 1, 4, 4, 9, 7, 6, 7, 5, 7, 9, 6, 9, 9], "cumulative_wins": 111, "cumulative_losses": 105, "win_percentage": 0.5138888888888888}, "BALL": {"weekly_wins": [4, 7, 6, 7, 5, 6, 2, 1, 0, 7, 0, 9, 4, 7, 4, 6, 2, 3, 3, 3, 2, 4, 2, 1], "weekly_losses": [5, 2, 3, 2, 4, 3, 7, 8, 9, 2, 9, 0, 5, 2, 5, 3, 7, 6, 6, 6, 7, 5, 7, 8], "cumulative_wins": 95, "cumulative_losses": 121, "win_percentage": 0.4398148148148148}, "SOSA": {"weekly_wins": [3, 1, 4, 2, 1, 4, 4, 2, 3, 1, 1, 4, 2, 3, 2, 4, 0, 0, 0, 0, 1, 1, 1, 2], "weekly_losses": [6, 8, 5, 7, 8, 5, 5, 7, 6, 8, 8, 5, 7, 6, 7, 5, 9, 9, 9, 9, 8, 8, 8, 7], "cumulative_wins": 46, "cumulative_losses": 170, "win_percentage": 0.21296296296296297}, "DD ": {"weekly_wins": [6, 9, 2, 4, 6, 1, 6, 7, 5, 3, 3, 2, 7, 6, 8, 7, 5, 5, 5, 1, 6, 0, 4, 5], "weekly_losses": [3, 0, 7, 5, 3, 8, 3, 2, 4, 6, 6, 7, 2, 3, 1, 2, 4, 4, 4, 8, 3, 9, 5, 4], "cumulative_wins": 113, "cumulative_losses": 103, "win_percentage": 0.5231481481481481}}};
+        const marginData = {"labels": ["0-79", "79-158", "158-237", "237-316", "316-395", "395-474", "474-553", "553-632", "632-711", "711-790"], "counts": [22, 28, 19, 15, 17, 6, 3, 4, 1, 4]};
+        const teamColors = {"GALL": "#FF6384", "SAM": "#36A2EB", "NLH": "#FFCE56", "BEER": "#4BC0C0", "SHOW": "#9966FF", "MIDD": "#FF9F40", "TyPc": "#FF6384", "BALL": "#C9CBCF", "SOSA": "#4BC0C0", "DD ": "#FF6384"};
+        const teamNames = {"GALL": "Kuzmania", "SAM": "Its Not Delivery, Its Dejounte", "NLH": "Look Ja, No Left Hand", "BEER": "Poole Party", "SHOW": "Sen-GOON Squad", "MIDD": "Ay-ton of Drugs ", "TyPc": "TyReese's Pieces", "BALL": "Ball Don't Lie", "SOSA": "Cuz thats that Sh!t Zion't LIKE", "DD ": "Bouncy Balls"};
+        const teamLogos = {"GALL": "https://i.redd.it/9gwy9lt732091.jpg", "SAM": "https://g.espncdn.com/lm-static/logo-packs/fba/Jerseys-ESPN/fba-jerseys-07.svg", "NLH": "https://g.espncdn.com/lm-static/fba/images/default_logos/20.svg", "BEER": "https://g.espncdn.com/lm-static/fba/images/default_logos/1.svg", "SHOW": "https://i1.sndcdn.com/avatars-000416422656-cgstbk-t500x500.jpg", "MIDD": "https://g.espncdn.com/lm-static/logo-packs/core/BobsBurgers/Bob_OnModel.svg", "TyPc": "https://g.espncdn.com/lm-static/fba/images/default_logos/16.svg", "BALL": "https://g.espncdn.com/lm-static/logo-packs/core/RalphBreaksTheInternet/ralph-11.svg", "SOSA": "https://g.espncdn.com/lm-static/fba/images/default_logos/3.svg", "DD ": "https://g.espncdn.com/lm-static/logo-packs/core/OldTimeMickeyAndFriends/Basketball_Mickey.svg"};
+
+        // Chart.js default settings for dark theme
+        Chart.defaults.color = '#e4e6eb';
+        Chart.defaults.borderColor = '#2d3748';
+
+        // Load team logo images
+        const teamLogoImages = {};
+        Object.keys(teamLogos).forEach(teamName => {
+            if (teamLogos[teamName]) {
+                const img = new Image(30, 30);
+                img.src = teamLogos[teamName];
+                teamLogoImages[teamName] = img;
+            }
+        });
+
+        // 1. Weekly Total Points Line Chart
+        const weeklyPointsCtx = document.getElementById('weeklyPointsChart').getContext('2d');
+        const weeklyPointsChart = new Chart(weeklyPointsCtx, {
+            type: 'line',
+            data: {
+                labels: weeklyScoresData.weeks.map(w => `Week ${w}`),
+                datasets: Object.keys(weeklyScoresData.teams).map(teamName => {
+                    const dataPoints = weeklyScoresData.teams[teamName];
+                    const numPoints = dataPoints.length;
+
+                    // Create pointStyle array - use logo for all points if available
+                    let pointStyle = 'circle';
+                    const pointRadii = Array(numPoints).fill(4);
+                    const pointHoverRadii = Array(numPoints).fill(6);
+
+                    if (teamLogoImages[teamName]) {
+                        pointStyle = teamLogoImages[teamName];
+                        pointRadii[numPoints - 1] = 15;
+                        pointHoverRadii[numPoints - 1] = 18;
+                    }
+
+                    return {
+                        label: '  ' + teamName,  // Add non-breaking spaces for margin
+                        data: dataPoints,
+                        borderColor: teamColors[teamName],
+                        backgroundColor: teamColors[teamName] + '20',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointStyle: pointStyle,
+                        pointRadius: pointRadii,
+                        pointHoverRadius: pointHoverRadii
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + ' pts';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + ' pts';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#2d3748'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Cumulative Total Points Line Chart
+        const cumulativePointsCtx = document.getElementById('cumulativePointsChart').getContext('2d');
+        const cumulativePointsChart = new Chart(cumulativePointsCtx, {
+            type: 'line',
+            data: {
+                labels: cumulativePointsData.weeks.map(w => `Week ${w}`),
+                datasets: Object.keys(cumulativePointsData.teams).map(teamName => {
+                    const dataPoints = cumulativePointsData.teams[teamName];
+                    const numPoints = dataPoints.length;
+
+                    // Create pointStyle array - use logo for all points if available
+                    let pointStyle = 'circle';
+                    const pointRadii = Array(numPoints).fill(4);
+                    const pointHoverRadii = Array(numPoints).fill(6);
+
+                    if (teamLogoImages[teamName]) {
+                        pointStyle = teamLogoImages[teamName];
+                        pointRadii[numPoints - 1] = 15;
+                        pointHoverRadii[numPoints - 1] = 18;
+                    }
+
+                    return {
+                        label: '  ' + teamName,  // Add non-breaking spaces for margin
+                        data: dataPoints,
+                        borderColor: teamColors[teamName],
+                        backgroundColor: teamColors[teamName] + '20',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointStyle: pointStyle,
+                        pointRadius: pointRadii,
+                        pointHoverRadius: pointHoverRadii
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + ' pts (total)';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + ' pts';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Cumulative Total Points'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#2d3748'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. Standings Progression Step Chart
+        const standingsCtx = document.getElementById('standingsChart').getContext('2d');
+        const standingsChart = new Chart(standingsCtx, {
+            type: 'line',
+            data: {
+                labels: standingsData.weeks.map(w => `Week ${w}`),
+                datasets: Object.keys(standingsData.teams).map(teamName => {
+                    const dataPoints = standingsData.teams[teamName];
+                    const numPoints = dataPoints.length;
+
+                    // Create pointStyle array - use logo for all points if available
+                    let pointStyle = 'circle';
+                    const pointRadii = Array(numPoints).fill(3);
+                    const pointHoverRadii = Array(numPoints).fill(5);
+
+                    if (teamLogoImages[teamName]) {
+                        pointStyle = teamLogoImages[teamName];
+                        pointRadii[numPoints - 1] = 15;
+                        pointHoverRadii[numPoints - 1] = 18;
+                    }
+
+                    return {
+                        label: '  ' + teamName,  // Add non-breaking spaces for margin
+                        data: dataPoints,
+                        borderColor: teamColors[teamName],
+                        backgroundColor: teamColors[teamName] + '20',
+                        borderWidth: 2,
+                        stepped: true,
+                        pointStyle: pointStyle,
+                        pointRadius: pointRadii,
+                        pointHoverRadius: pointHoverRadii
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': Rank #' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        reverse: true,
+                        min: 1,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return '#' + value;
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'League Rank'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#2d3748'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 4. Win Margin Distribution Histogram
+        const marginCtx = document.getElementById('marginChart').getContext('2d');
+        const marginChart = new Chart(marginCtx, {
+            type: 'bar',
+            data: {
+                labels: marginData.labels,
+                datasets: [{
+                    label: 'Number of Matchups',
+                    data: marginData.counts,
+                    backgroundColor: '#4299e1',
+                    borderColor: '#2b6cb0',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        callbacks: {
+                            title: function(context) {
+                                return 'Margin: ' + context[0].label + ' points';
+                            },
+                            label: function(context) {
+                                return 'Matchups: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        ticks: {
+                            stepSize: 1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Number of Matchups'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Point Margin Range'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 5. All-Play Standings Chart
+        const allPlayStandingsCtx = document.getElementById('allPlayStandingsChart').getContext('2d');
+
+        // Sort teams by win percentage
+        const teamsByWinPct = Object.keys(allPlayRecords.teams)
+            .map(teamName => ({
+                name: teamName,
+                wins: allPlayRecords.teams[teamName].cumulative_wins,
+                losses: allPlayRecords.teams[teamName].cumulative_losses,
+                winPct: allPlayRecords.teams[teamName].win_percentage
+            }))
+            .sort((a, b) => b.winPct - a.winPct);
+
+        const allPlayStandingsChart = new Chart(allPlayStandingsCtx, {
+            type: 'bar',
+            data: {
+                labels: teamsByWinPct.map(t => t.name),
+                datasets: [
+                    {
+                        label: 'Wins',
+                        data: teamsByWinPct.map(t => t.wins),
+                        backgroundColor: '#48bb78',
+                        borderColor: '#38a169',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Losses',
+                        data: teamsByWinPct.map(t => t.losses),
+                        backgroundColor: '#f56565',
+                        borderColor: '#e53e3e',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        callbacks: {
+                            footer: function(tooltipItems) {
+                                const teamName = tooltipItems[0].label;
+                                const teamData = teamsByWinPct.find(t => t.name === teamName);
+                                const winPct = (teamData.winPct * 100).toFixed(1);
+                                const record = `${teamData.wins}-${teamData.losses}`;
+                                return `Record: ${record} (${winPct}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: false,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            color: '#e4e6eb',
+                            font: {
+                                size: 11,
+                                weight: 600
+                            },
+                            callback: function(value, index) {
+                                const teamName = teamsByWinPct[index].name;
+                                // Add team logo icon if available
+                                return teamName;
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Games'
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'customLegend',
+                afterDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    const chartArea = chart.chartArea;
+                    const datasets = chart.data.datasets;
+
+                    // Draw custom legend with team logos on x-axis
+                    chart.data.labels.forEach((label, index) => {
+                        const meta = chart.getDatasetMeta(0);
+                        const bar = meta.data[index];
+                        const x = bar.x;
+
+                        // Draw team logo if available
+                        if (teamLogoImages[label]) {
+                            const logo = teamLogoImages[label];
+                            const logoSize = 24;
+                            ctx.drawImage(logo, x - logoSize/2, chartArea.bottom + 5, logoSize, logoSize);
+                        }
+                    });
+                }
+            }]
+        });
+
+        // 6. All-Play Win Percentage Progression Chart
+        const allPlayProgressionCtx = document.getElementById('allPlayProgressionChart').getContext('2d');
+
+        // Calculate cumulative win percentage for each team by week
+        const allPlayProgressionData = {};
+        Object.keys(allPlayRecords.teams).forEach(teamName => {
+            const weeklyWins = allPlayRecords.teams[teamName].weekly_wins;
+            const weeklyLosses = allPlayRecords.teams[teamName].weekly_losses;
+            const cumulativeWinPcts = [];
+
+            let totalWins = 0;
+            let totalLosses = 0;
+
+            for (let i = 0; i < weeklyWins.length; i++) {
+                totalWins += weeklyWins[i];
+                totalLosses += weeklyLosses[i];
+                const totalGames = totalWins + totalLosses;
+                const winPct = totalGames > 0 ? (totalWins / totalGames) * 100 : 0;
+                cumulativeWinPcts.push(winPct);
+            }
+
+            allPlayProgressionData[teamName] = cumulativeWinPcts;
+        });
+
+        const allPlayProgressionChart = new Chart(allPlayProgressionCtx, {
+            type: 'line',
+            data: {
+                labels: allPlayRecords.weeks.map(w => `Week ${w}`),
+                datasets: Object.keys(allPlayProgressionData).map(teamName => {
+                    const dataPoints = allPlayProgressionData[teamName];
+                    const numPoints = dataPoints.length;
+
+                    let pointStyle = 'circle';
+                    const pointRadii = Array(numPoints).fill(4);
+                    const pointHoverRadii = Array(numPoints).fill(6);
+
+                    if (teamLogoImages[teamName]) {
+                        pointStyle = teamLogoImages[teamName];
+                        pointRadii[numPoints - 1] = 15;
+                        pointHoverRadii[numPoints - 1] = 18;
+                    }
+
+                    return {
+                        label: '  ' + teamName,
+                        data: dataPoints,
+                        borderColor: teamColors[teamName],
+                        backgroundColor: teamColors[teamName] + '20',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointStyle: pointStyle,
+                        pointRadius: pointRadii,
+                        pointHoverRadius: pointHoverRadii
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const teamName = context.dataset.label.trim();
+                                const weekIndex = context.dataIndex;
+                                const teamData = allPlayRecords.teams[teamName];
+                                const wins = teamData.weekly_wins.slice(0, weekIndex + 1).reduce((a, b) => a + b, 0);
+                                const losses = teamData.weekly_losses.slice(0, weekIndex + 1).reduce((a, b) => a + b, 0);
+                                const winPct = context.parsed.y.toFixed(1);
+                                return `${context.dataset.label}: ${winPct}% (${wins}-${losses})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: '#2d3748'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Win Percentage'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#2d3748'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 7. Top Player Contributions with Images
+        const latestWeek = playerContributions.weeks[playerContributions.weeks.length - 1];
+        const latestContributions = playerContributions.contributions[latestWeek];
+
+        function getPlayerImageUrl(playerId) {
+            if (!playerId) return null;
+            return `https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${playerId}.png&w=426&h=320&cb=1`;
+        }
+
+        function getInitials(name) {
+            const parts = name.split(' ');
+            if (parts.length >= 2) {
+                return parts[0][0] + parts[parts.length - 1][0];
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        function renderPlayerContributions() {
+            const grid = document.getElementById('playerContributionsGrid');
+            const teams = Object.keys(latestContributions);
+
+            // Calculate max points for scaling bars
+            let maxPoints = 0;
+            teams.forEach(team => {
+                latestContributions[team].forEach(player => {
+                    if (player.points > maxPoints) maxPoints = player.points;
+                });
+            });
+
+            teams.forEach(team => {
+                const teamCard = document.createElement('div');
+                teamCard.className = 'team-card';
+
+                const teamTitle = document.createElement('h3');
+                const teamFullName = teamNames[team] || team;
+                teamTitle.textContent = teamFullName;
+                teamCard.appendChild(teamTitle);
+
+                const players = latestContributions[team];
+                players.forEach(player => {
+                    const playerItem = document.createElement('div');
+                    playerItem.className = 'player-item';
+
+                    // Create image or fallback
+                    const imageUrl = getPlayerImageUrl(player.playerId);
+                    if (imageUrl) {
+                        const img = document.createElement('img');
+                        img.className = 'player-photo';
+                        img.src = imageUrl;
+                        img.alt = player.name;
+
+                        // Fallback to initials if image fails to load
+                        img.onerror = function() {
+                            const fallback = document.createElement('div');
+                            fallback.className = 'player-photo-error';
+                            fallback.textContent = getInitials(player.name);
+                            playerItem.replaceChild(fallback, img);
+                        };
+
+                        playerItem.appendChild(img);
+                    } else {
+                        const fallback = document.createElement('div');
+                        fallback.className = 'player-photo-error';
+                        fallback.textContent = getInitials(player.name);
+                        playerItem.appendChild(fallback);
+                    }
+
+                    // Player info
+                    const playerInfo = document.createElement('div');
+                    playerInfo.className = 'player-info';
+
+                    const playerName = document.createElement('div');
+                    playerName.className = 'player-name';
+                    playerName.textContent = player.name;
+                    playerInfo.appendChild(playerName);
+
+                    const pointsBar = document.createElement('div');
+                    pointsBar.className = 'points-bar';
+                    const barWidth = (player.points / maxPoints) * 100;
+                    pointsBar.style.width = barWidth + '%';
+                    playerInfo.appendChild(pointsBar);
+
+                    playerItem.appendChild(playerInfo);
+
+                    // Points display
+                    const playerPoints = document.createElement('div');
+                    playerPoints.className = 'player-points';
+                    playerPoints.textContent = player.points.toFixed(1);
+                    playerItem.appendChild(playerPoints);
+
+                    teamCard.appendChild(playerItem);
+                });
+
+                grid.appendChild(teamCard);
+            });
+        }
+
+        renderPlayerContributions();
+
+        // Top 3 Players by Week
+        let selectedWeek = topPlayersByWeek.weeks[topPlayersByWeek.weeks.length - 1];
+
+        function renderWeekSelector() {
+            const selector = document.getElementById('weekSelector');
+            selector.innerHTML = '';  // Clear existing buttons
+            topPlayersByWeek.weeks.forEach(week => {
+                const button = document.createElement('button');
+                button.className = 'week-button';
+                button.textContent = `Week ${week}`;
+                if (week === selectedWeek) {
+                    button.classList.add('active');
+                }
+                button.onclick = () => {
+                    selectedWeek = week;
+                    renderWeekSelector();
+                    renderTopPlayers();
+                };
+                selector.appendChild(button);
+            });
+        }
+
+        function renderTopPlayers() {
+            const display = document.getElementById('topPlayersDisplay');
+            display.innerHTML = '';
+
+            const players = topPlayersByWeek.top_players[selectedWeek];
+
+            players.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = `top-player-card rank-${index + 1}`;
+
+                // Rank badge
+                const badge = document.createElement('div');
+                badge.className = `rank-badge rank-${index + 1}`;
+                badge.textContent = index + 1;
+                card.appendChild(badge);
+
+                // Player photo
+                const imageUrl = getPlayerImageUrl(player.playerId);
+                if (imageUrl) {
+                    const img = document.createElement('img');
+                    img.className = 'top-player-photo';
+                    img.src = imageUrl;
+                    img.alt = player.name;
+
+                    img.onerror = function() {
+                        const fallback = document.createElement('div');
+                        fallback.className = 'top-player-photo-error';
+                        fallback.textContent = getInitials(player.name);
+                        card.replaceChild(fallback, img);
+                    };
+
+                    card.appendChild(img);
+                } else {
+                    const fallback = document.createElement('div');
+                    fallback.className = 'top-player-photo-error';
+                    fallback.textContent = getInitials(player.name);
+                    card.appendChild(fallback);
+                }
+
+                // Player name
+                const name = document.createElement('div');
+                name.className = 'top-player-name';
+                name.textContent = player.name;
+                card.appendChild(name);
+
+                // Player team (full name)
+                const team = document.createElement('div');
+                team.className = 'top-player-team';
+                const teamFullName = teamNames[player.team] || player.team;
+                team.textContent = teamFullName;
+                card.appendChild(team);
+
+                // Player points
+                const points = document.createElement('div');
+                points.className = 'top-player-points';
+                points.textContent = player.points.toFixed(1);
+                card.appendChild(points);
+
+                display.appendChild(card);
+            });
+        }
+
+        renderWeekSelector();
+        renderTopPlayers();
+
+        // Top 10 Player Performances of the Season
+        function renderTopPerformances() {
+            const display = document.getElementById('topPerformancesDisplay');
+            display.innerHTML = '';
+
+            const performances = topPlayerPerformances.top_performances;
+
+            performances.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = `top-player-card`;
+
+                // Add special styling for top 3
+                if (index < 3) {
+                    card.classList.add(`rank-${index + 1}`);
+                }
+
+                // Rank badge
+                const badge = document.createElement('div');
+                badge.className = `rank-badge`;
+                if (index < 3) {
+                    badge.classList.add(`rank-${index + 1}`);
+                }
+                badge.textContent = index + 1;
+                card.appendChild(badge);
+
+                // Player photo
+                const imageUrl = getPlayerImageUrl(player.playerId);
+                if (imageUrl) {
+                    const img = document.createElement('img');
+                    img.className = 'top-player-photo';
+                    img.src = imageUrl;
+                    img.alt = player.name;
+
+                    img.onerror = function() {
+                        const fallback = document.createElement('div');
+                        fallback.className = 'top-player-photo-error';
+                        fallback.textContent = getInitials(player.name);
+                        card.replaceChild(fallback, img);
+                    };
+
+                    card.appendChild(img);
+                } else {
+                    const fallback = document.createElement('div');
+                    fallback.className = 'top-player-photo-error';
+                    fallback.textContent = getInitials(player.name);
+                    card.appendChild(fallback);
+                }
+
+                // Player name
+                const name = document.createElement('div');
+                name.className = 'top-player-name';
+                name.textContent = player.name;
+                card.appendChild(name);
+
+                // Player team and week
+                const team = document.createElement('div');
+                team.className = 'top-player-team';
+                const teamFullName = teamNames[player.team] || player.team;
+                team.textContent = `${teamFullName} - Week ${player.week}`;
+                card.appendChild(team);
+
+                // Player points
+                const points = document.createElement('div');
+                points.className = 'top-player-points';
+                points.textContent = player.points.toFixed(1);
+                card.appendChild(points);
+
+                display.appendChild(card);
+            });
+        }
+
+        renderTopPerformances();
+
+        // Top Team by Week
+        let selectedTeamWeek = topTeamByWeek.weeks[topTeamByWeek.weeks.length - 1];
+
+        function renderTopTeamWeekSelector() {
+            const selector = document.getElementById('topTeamWeekSelector');
+            selector.innerHTML = '';  // Clear existing buttons
+            topTeamByWeek.weeks.forEach(week => {
+                const button = document.createElement('button');
+                button.className = 'week-button';
+                button.textContent = `Week ${week}`;
+                if (week === selectedTeamWeek) {
+                    button.classList.add('active');
+                }
+                button.onclick = () => {
+                    selectedTeamWeek = week;
+                    renderTopTeamWeekSelector();
+                    renderTopTeam();
+                };
+                selector.appendChild(button);
+            });
+        }
+
+        function renderTopTeam() {
+            const display = document.getElementById('topTeamDisplay');
+            display.innerHTML = '';
+
+            const teamData = topTeamByWeek.top_teams[selectedTeamWeek];
+            const teamAbbrev = teamData.team;
+            const teamFullName = teamNames[teamAbbrev] || teamAbbrev;
+
+            const card = document.createElement('div');
+            card.className = 'top-team-card';
+
+            // Trophy emoji
+            const trophy = document.createElement('div');
+            trophy.className = 'top-team-trophy';
+            trophy.textContent = '👑';
+            card.appendChild(trophy);
+
+            // Team logo
+            if (teamLogos[teamAbbrev]) {
+                const logo = document.createElement('img');
+                logo.className = 'top-team-logo';
+                logo.src = teamLogos[teamAbbrev];
+                logo.alt = teamFullName;
+                card.appendChild(logo);
+            }
+
+            // Team name (full name)
+            const name = document.createElement('div');
+            name.className = 'top-team-name';
+            name.textContent = teamFullName;
+            card.appendChild(name);
+
+            // Team points
+            const points = document.createElement('div');
+            points.className = 'top-team-points';
+            points.textContent = teamData.points.toFixed(1);
+            card.appendChild(points);
+
+            // Label
+            const label = document.createElement('div');
+            label.className = 'top-team-label';
+            label.textContent = 'Total Points';
+            card.appendChild(label);
+
+            display.appendChild(card);
+        }
+
+        renderTopTeamWeekSelector();
+        renderTopTeam();
+    </script>
+</body>
+</html>
