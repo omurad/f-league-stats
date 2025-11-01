@@ -12,8 +12,54 @@ from collections import defaultdict
 from typing import Dict, List, Any
 
 from espn_api.basketball import League
+from espn_api.basketball.player import Player
 
 import settings
+
+
+# Monkey-patch the Player class to handle missing stats in in-progress seasons
+_original_player_init = Player.__init__
+
+
+def _patched_player_init(self, data, year, pro_schedule=None):
+    """Patched Player.__init__ that handles missing 'stats' key for in-progress seasons."""
+    try:
+        # Try the original initialization
+        _original_player_init(self, data, year, pro_schedule)
+    except KeyError as e:
+        if str(e) == "'stats'":
+            # Handle missing stats gracefully for in-progress seasons
+            # Initialize basic player attributes
+            self.name = data.get('fullName', data.get('name', 'Unknown'))
+            self.playerId = data.get('id', 0)
+            self.posRank = data.get('positionRank', 0)
+            self.eligibleSlots = data.get('eligibleSlots', [])
+            self.acquisitionType = data.get('acquisitionType', '')
+            self.proTeam = data.get('proTeamId', '')
+            self.injuryStatus = ''
+            self.injured = False
+            self.position = ''
+
+            # Initialize stats-related attributes with defaults
+            self.points = 0
+            self.avg_points = 0.0
+            self.total_points = 0.0
+            self.projected_avg_points = 0.0
+            self.projected_total_points = 0.0
+            self.stats = {}
+
+            # Try to extract position from eligible slots if available
+            if pro_schedule and self.proTeam:
+                for team in pro_schedule:
+                    if team['id'] == self.proTeam:
+                        self.proTeam = team['abbrev']
+                        break
+        else:
+            # Re-raise if it's a different KeyError
+            raise
+
+
+Player.__init__ = _patched_player_init
 
 
 def fetch_league_data():
@@ -33,12 +79,19 @@ def fetch_league_data():
             espn_s2=settings.ESPN_S2,
             swid=settings.SWID
         )
-        print(f"✓ Connected successfully to: {league.settings.name}")
+        print(f"[OK] Connected successfully to: {league.settings.name}")
         print(f"  Teams: {len(league.teams)}")
         print(f"  Current Week: {league.currentMatchupPeriod}")
         return league
+    except KeyError as e:
+        # This happens with in-progress seasons where player stats aren't fully populated
+        print(f"[ERROR] KeyError when fetching league data: {e}")
+        print(f"[INFO] This usually happens with in-progress or future seasons.")
+        print(f"[INFO] The ESPN API may not have complete data yet for year {settings.YEAR}.")
+        print(f"[INFO] Try using a completed season year instead.")
+        raise
     except Exception as e:
-        print(f"✗ Error connecting to league: {e}")
+        print(f"[ERROR] Error connecting to league: {e}")
         raise
 
 
@@ -71,11 +124,11 @@ def get_team_logos(league: League) -> Dict[str, str]:
     for idx, team in enumerate(league.teams):
         if idx < len(logo_urls) and logo_urls[idx]:
             team_logos[team.team_abbrev] = logo_urls[idx]
-            print(f"  ✓ {team.team_abbrev} -> Logo {idx + 1}")
+            print(f"  [OK] {team.team_abbrev} -> Logo {idx + 1}")
         else:
-            print(f"  ✗ No logo configured for {team.team_abbrev}")
+            print(f"  [SKIP] No logo configured for {team.team_abbrev}")
 
-    print(f"✓ Mapped logos for {len(team_logos)} teams")
+    print(f"[OK] Mapped logos for {len(team_logos)} teams")
 
     return team_logos
 
@@ -128,7 +181,7 @@ def get_weekly_scores(league: League) -> Dict[str, Any]:
             score = teams_this_week.get(team.team_abbrev, 0)
             weekly_data[team.team_abbrev].append(score)
 
-    print(f"✓ Fetched {len(weeks)} weeks of data for {len(weekly_data)} teams")
+    print(f"[OK] Fetched {len(weeks)} weeks of data for {len(weekly_data)} teams")
 
     return {
         'weeks': weeks,
@@ -168,7 +221,7 @@ def get_cumulative_points(weekly_scores: Dict[str, Any]) -> Dict[str, Any]:
 
         cumulative_data[team_abbrev] = cumulative_points
 
-    print(f"✓ Calculated cumulative points for {len(cumulative_data)} teams")
+    print(f"[OK] Calculated cumulative points for {len(cumulative_data)} teams")
 
     return {
         'weeks': weeks,
@@ -237,7 +290,7 @@ def get_standings_progression(league: League) -> Dict[str, Any]:
             team_standings[team_abbrev].append(
                 week_rankings.get(team_abbrev, len(team_records)))
 
-    print(f"✓ Calculated standings for {len(weeks)} weeks")
+    print(f"[OK] Calculated standings for {len(weeks)} weeks")
 
     return {
         'weeks': weeks,
@@ -301,7 +354,7 @@ def get_top_player_contributions(league: League) -> Dict[str, Any]:
                 player_stats.sort(key=lambda x: x['points'], reverse=True)
                 contributions[week][team_abbrev] = player_stats[:settings.TOP_PLAYERS_PER_TEAM]
 
-    print(f"✓ Fetched player contributions for {len(weeks)} weeks")
+    print(f"[OK] Fetched player contributions for {len(weeks)} weeks")
 
     return {
         'weeks': weeks,
@@ -355,7 +408,7 @@ def get_top_team_by_week(league: League) -> Dict[str, Any]:
                 'points': top_team[1]
             }
 
-    print(f"✓ Fetched top team for {len(weeks)} weeks")
+    print(f"[OK] Fetched top team for {len(weeks)} weeks")
 
     return {
         'weeks': weeks,
@@ -419,7 +472,7 @@ def get_top_players_by_week(league: League) -> Dict[str, Any]:
         all_players.sort(key=lambda x: x['points'], reverse=True)
         top_players[week] = all_players[:3]
 
-    print(f"✓ Fetched top 3 players for {len(weeks)} weeks")
+    print(f"[OK] Fetched top 3 players for {len(weeks)} weeks")
 
     return {
         'weeks': weeks,
@@ -487,7 +540,7 @@ def get_top_player_performances(league: League) -> Dict[str, Any]:
     top_3 = all_performances[:3]
 
     print(
-        f"✓ Found top 3 performances from {len(all_performances)} total performances")
+        f"[OK] Found top 3 performances from {len(all_performances)} total performances")
 
     return {
         'top_performances': top_3
@@ -572,7 +625,7 @@ def get_all_play_records(league: League) -> Dict[str, Any]:
         else:
             team_data[team_abbrev]['win_percentage'] = 0.0
 
-    print(f"✓ Calculated all-play records for {len(weeks)} weeks")
+    print(f"[OK] Calculated all-play records for {len(weeks)} weeks")
 
     return {
         'weeks': weeks,
@@ -600,7 +653,7 @@ def get_win_margins(league: League) -> List[float]:
                 margin = abs(box.home_score - box.away_score)
                 margins.append(margin)
 
-    print(f"✓ Calculated {len(margins)} matchup margins")
+    print(f"[OK] Calculated {len(margins)} matchup margins")
 
     return margins
 
@@ -2349,7 +2402,7 @@ def main():
             f.write(html_content)
 
         print(f"\n{'=' * 60}")
-        print(f"✓ SUCCESS!")
+        print(f"[SUCCESS]")
         print(f"{'=' * 60}")
         print(f"HTML file generated: {output_path}")
         print(f"Open this file in your web browser to view the stats dashboard.")
@@ -2357,7 +2410,7 @@ def main():
 
     except Exception as e:
         print(f"\n{'=' * 60}")
-        print(f"✗ ERROR: {e}")
+        print(f"[ERROR] {e}")
         print(f"{'=' * 60}\n")
         raise
 
