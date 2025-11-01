@@ -35,9 +35,6 @@ env/
 *.swo
 *~
 
-# Output files
-#output/*.html
-
 # Sensitive settings (if you decide to store credentials)
 settings_local.py
 
